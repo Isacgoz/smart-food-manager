@@ -97,6 +97,26 @@ export const destockIngredients = (
 };
 
 /**
+ * Calcul coût matière d'un produit
+ * Somme des coûts ingrédients de la recette
+ */
+export const calculateProductCost = (
+  product: Product,
+  ingredients: Ingredient[]
+): number => {
+  if (!product.recipe || product.recipe.length === 0) {
+    return 0;
+  }
+
+  return product.recipe.reduce((total, recipeItem) => {
+    const ingredient = ingredients.find(i => i.id === recipeItem.ingredientId);
+    if (!ingredient) return total;
+
+    return total + (ingredient.pmp * recipeItem.quantity);
+  }, 0);
+};
+
+/**
  * Calcul Prix Moyen Pondéré
  * Formule: (stock × PMP_ancien + qté_reçue × prix_unit) / (stock + qté_reçue)
  */

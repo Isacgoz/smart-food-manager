@@ -36,7 +36,7 @@ Copier-coller ces commandes dans votre terminal:
 cd "/Users/isacelgozmir/Downloads/smart-food-manager (6)"
 
 # Ajouter remote GitHub
-git remote add origin https://github.com/VOTRE-USERNAME/smart-food-manager.git
+git remote add origin https://github.com/Isacgoz/smart-food-manager.git
 
 # Push code
 git push -u origin main

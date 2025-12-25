@@ -1,3 +1,4 @@
+
 # 🚀 Instructions de Configuration - Smart Food Manager
 
 ## ✅ Corrections Appliquées
