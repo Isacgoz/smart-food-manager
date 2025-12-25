@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" width="96" height="96">
+  <!-- Background -->
+  <rect width="96" height="96" fill="#10b981"/>
+
+  <!-- Chef Hat Icon (simplified) -->
+  <g transform="translate(24, 24) scale(0.48)">
+    <!-- Hat top -->
+    <ellipse cx="50" cy="35" rx="45" ry="25" fill="white"/>
+    <!-- Hat base -->
+    <rect x="10" y="50" width="80" height="30" rx="5" fill="white"/>
+    <rect x="5" y="75" width="90" height="10" rx="3" fill="white"/>
+  </g>
+
+  <!-- Text "SFM" -->
+  <text
+    x="48"
+    y="76.80000000000001"
+    font-family="Inter, -apple-system, sans-serif"
+    font-size="11.52"
+    font-weight="900"
+    fill="white"
+    text-anchor="middle"
+  >SFM</text>
+</svg>

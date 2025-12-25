@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hors-ligne - Smart Food Manager</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .container {
+      text-align: center;
+      max-width: 500px;
+    }
+
+    .icon {
+      width: 120px;
+      height: 120px;
+      background: rgba(239, 68, 68, 0.1);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-center;
+      margin: 0 auto 2rem;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.05); opacity: 0.8; }
+    }
+
+    .icon svg {
+      width: 60px;
+      height: 60px;
+      stroke: #ef4444;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 900;
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+      letter-spacing: -0.05em;
+    }
+
+    p {
+      font-size: 1.125rem;
+      opacity: 0.8;
+      margin-bottom: 2rem;
+      line-height: 1.6;
+    }
+
+    .retry-btn {
+      background: #10b981;
+      color: white;
+      border: none;
+      padding: 1rem 2.5rem;
+      border-radius: 2rem;
+      font-size: 1.125rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      transition: all 0.2s;
+      box-shadow: 0 10px 40px rgba(16, 185, 129, 0.3);
+    }
+
+    .retry-btn:hover {
+      background: #059669;
+      transform: translateY(-2px);
+      box-shadow: 0 15px 50px rgba(16, 185, 129, 0.4);
+    }
+
+    .retry-btn:active {
+      transform: translateY(0);
+    }
+
+    .info {
+      margin-top: 3rem;
+      padding: 1.5rem;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 1.5rem;
+      font-size: 0.875rem;
+      opacity: 0.7;
+    }
+
+    .info strong {
+      display: block;
+      margin-bottom: 0.5rem;
+      opacity: 1;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon">
+      <svg viewBox="0 0 24 24">
+        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke-dasharray="100" stroke-dashoffset="0">
+          <animate attributeName="stroke-dashoffset" from="0" to="100" dur="3s" repeatCount="indefinite"/>
+        </path>
+      </svg>
+    </div>
+
+    <h1>Mode Hors-ligne</h1>
+
+    <p>
+      Vous êtes actuellement hors-ligne. L'application Smart Food Manager continue de fonctionner et vos données seront automatiquement synchronisées dès que la connexion sera rétablie.
+    </p>
+
+    <button class="retry-btn" onclick="window.location.reload()">
+      Réessayer
+    </button>
+
+    <div class="info">
+      <strong>Fonctionnalités disponibles hors-ligne :</strong>
+      ✓ Prise de commande (POS)<br>
+      ✓ Consultation du menu<br>
+      ✓ Gestion des stocks<br>
+      ✓ Écran cuisine (KDS)<br>
+      <br>
+      Les données seront synchronisées automatiquement.
+    </div>
+  </div>
+
+  <script>
+    // Vérifier connexion toutes les 5 secondes
+    setInterval(() => {
+      if (navigator.onLine) {
+        window.location.reload();
+      }
+    }, 5000);
+  </script>
+</body>
+</html>

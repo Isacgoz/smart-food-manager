@@ -1,0 +1,5 @@
+{
+  "name": "Smart Food Manager",
+  "description": "Complete management solution for food trucks and restaurants. Features inventory tracking, recipe costing, POS, table management, and financial analytics.",
+  "requestFramePermissions": []
+}
