@@ -62,7 +62,13 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export const AppProvider: React.FC<{ children: React.ReactNode, restaurant: RestaurantProfile, onRestaurantLogout: () => void }> = ({ children, restaurant, onRestaurantLogout }) => {
   const { notify: toast } = useToast();
   const [data, setData] = useState({
-    users: [{ id: '1', name: 'Admin', pin: '1234', role: 'OWNER' }] as User[],
+    users: [{
+      id: '1',
+      name: 'Admin',
+      pin: '1234',
+      pinHash: '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4',
+      role: 'OWNER'
+    }] as User[],
     orders: [] as Order[],
     ingredients: [] as Ingredient[],
     products: [] as Product[],
