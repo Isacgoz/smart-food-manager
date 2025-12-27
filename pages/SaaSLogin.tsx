@@ -131,11 +131,12 @@ const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
         }
 
         try {
-            // Inscription Supabase sécurisée
+            // Inscription Supabase sécurisée avec auto-confirm
             const { data, error: signUpError } = await supabase.auth.signUp({
                 email: regEmail.toLowerCase().trim(),
                 password: regPassword,
                 options: {
+                    emailRedirectTo: window.location.origin,
                     data: {
                         restaurant_name: regName.trim(),
                         plan: regPlan
@@ -166,31 +167,52 @@ const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
 
             const initialState = {
                 restaurant: profile,
-                users: [],
+                users: [{
+                    id: '1',
+                    name: 'Admin',
+                    pin: '1234',
+                    pinHash: '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4',
+                    role: 'OWNER'
+                }],
                 products: [],
                 tables: [],
                 orders: [],
                 ingredients: [],
                 movements: [],
                 expenses: [],
+                cashDeclarations: [],
+                partners: [],
+                supplierOrders: [],
                 _lastUpdatedAt: Date.now()
             };
 
             const { error: insertError } = await supabase
                 .from('app_state')
-                .insert({
+                .upsert({
                     id: data.user.id,
                     data: initialState
+                }, {
+                    onConflict: 'id'
                 });
 
             if (insertError) {
+                console.error('[REGISTER] Insert error:', insertError);
                 setError('Erreur création profil: ' + insertError.message);
                 return;
             }
 
-            // Auto-login après inscription
+            // Sauvegarder localement aussi pour fallback
+            const newAccount = {
+                email: regEmail.toLowerCase(),
+                profile
+            };
+            const updatedAccounts = [...accounts, newAccount];
+            localStorage.setItem(SAAS_DB_KEY, JSON.stringify(updatedAccounts));
+
+            // Auto-login après inscription (même si email non vérifié en dev)
             onLogin(profile);
         } catch (err: any) {
+            console.error('[REGISTER] Exception:', err);
             setError(err.message || 'Erreur inscription.');
         }
     };

@@ -15,7 +15,6 @@ import Users from './pages/Users';
 import Orders from './pages/Orders';
 import Kitchen from './pages/Kitchen';
 import SaaSLogin from './pages/SaaSLogin';
-import Backup from './pages/Backup';
 import Expenses from './pages/Expenses';
 import { RestaurantProfile, Role } from './shared/types';
 import { hasFeature } from './services/subscription';
@@ -25,8 +24,8 @@ import { registerServiceWorker } from './shared/hooks/usePWA';
 
 // Permissions par rôle (Sécurité)
 const ROLE_ROUTES: Record<Role, string[]> = {
-  OWNER: ['dashboard', 'kitchen', 'stocks', 'purchases', 'partners', 'menu', 'pos', 'users', 'orders', 'backup', 'expenses'],
-  MANAGER: ['dashboard', 'kitchen', 'stocks', 'purchases', 'menu', 'pos', 'orders', 'backup', 'expenses'],
+  OWNER: ['dashboard', 'kitchen', 'stocks', 'purchases', 'partners', 'menu', 'pos', 'users', 'orders', 'expenses'],
+  MANAGER: ['dashboard', 'kitchen', 'stocks', 'purchases', 'menu', 'pos', 'orders', 'expenses'],
   SERVER: ['pos', 'kitchen', 'orders'],
   COOK: ['kitchen']
 };
@@ -102,7 +101,6 @@ const AppContent: React.FC = () => {
       case 'pos': return <POS />;
       case 'users': return <Users />;
       case 'orders': return <Orders />;
-      case 'backup': return <Backup />;
       default: return <div className="text-center p-10 font-black">MODULE EN CONSTRUCTION</div>;
     }
   };
