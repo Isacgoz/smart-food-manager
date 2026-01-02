@@ -99,13 +99,14 @@ export const destockIngredients = (
 /**
  * Calcul coût matière d'un produit
  * Somme des coûts ingrédients de la recette
+ * Si pas de recette: coût = prix de vente (produit acheté tout fait)
  */
 export const calculateProductCost = (
   product: Product,
   ingredients: Ingredient[]
 ): number => {
   if (!product.recipe || product.recipe.length === 0) {
-    return 0;
+    return product.price / (1 + product.vatRate / 100);
   }
 
   return product.recipe.reduce((total, recipeItem) => {
