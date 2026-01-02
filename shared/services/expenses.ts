@@ -19,7 +19,7 @@ export const calculateMaterialCost = (
       const product = products.find(p => p.id === item.productId);
       if (!product) return;
 
-      const { cost } = calculateProductCost(product, ingredients);
+      const cost = calculateProductCost(product, ingredients);
       totalMaterialCost += cost * item.quantity;
     });
   });
