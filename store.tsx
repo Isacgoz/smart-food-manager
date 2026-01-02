@@ -237,11 +237,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode, restaurant: Rest
         if (ingredientIndex === -1) return;
 
         const quantityToDeduct = recipeItem.quantity * item.quantity;
+        const currentStock = updatedIngredients[ingredientIndex].stock;
+        const finalStock = currentStock - quantityToDeduct;
 
-        // Déstockage
+        // Alerte si stock devient négatif (race condition détectée)
+        if (finalStock < 0) {
+          notify(`⚠️ Stock négatif: ${updatedIngredients[ingredientIndex].name} (${finalStock.toFixed(2)} ${updatedIngredients[ingredientIndex].unit})`, 'warning');
+        }
+
+        // Déstockage (autorisé même si négatif, avec alerte)
         updatedIngredients[ingredientIndex] = {
           ...updatedIngredients[ingredientIndex],
-          stock: updatedIngredients[ingredientIndex].stock - quantityToDeduct
+          stock: finalStock
         };
 
         // Mouvement de stock tracé

@@ -16,6 +16,7 @@ import Orders from './pages/Orders';
 import Kitchen from './pages/Kitchen';
 import SaaSLogin from './pages/SaaSLogin';
 import Expenses from './pages/Expenses';
+import Tables from './pages/Tables';
 import { RestaurantProfile, Role } from './shared/types';
 import { hasFeature } from './services/subscription';
 import { Lock } from 'lucide-react';
@@ -101,6 +102,7 @@ const AppContent: React.FC = () => {
       case 'pos': return <POS />;
       case 'users': return <Users />;
       case 'orders': return <Orders />;
+      case 'tables': return <Tables />;
       default: return <div className="text-center p-10 font-black">MODULE EN CONSTRUCTION</div>;
     }
   };

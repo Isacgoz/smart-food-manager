@@ -5,7 +5,7 @@ import { Clock, Search, FileText, Printer, CreditCard, Banknote, CheckCircle, Ut
 import { Order, KitchenStatus } from '../types';
 
 const Orders: React.FC = () => {
-    const { orders, tables, payOrder, cancelOrder, users } = useStore();
+    const { orders, tables, payOrder, users, products } = useStore();
     const [activeTab, setActiveTab] = useState<'PENDING' | 'COMPLETED'>('PENDING');
     const [filter, setFilter] = useState('');
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -113,8 +113,40 @@ const Orders: React.FC = () => {
                         </div>
 
                         <div className="mt-8 pt-8 border-t-4 border-slate-900">
+                            {/* TVA Breakdown */}
+                            <div className="mb-6 space-y-2 bg-slate-50 p-4 rounded-2xl">
+                                {(() => {
+                                    const tvaByCat = selectedOrder.items.reduce((acc, item) => {
+                                        const product = products.find(p => p.id === item.productId);
+                                        const rate = product?.vatRate || 10;
+                                        const ht = (item.price * item.quantity) / (1 + rate / 100);
+                                        const tva = (item.price * item.quantity) - ht;
+                                        acc[rate] = (acc[rate] || 0) + tva;
+                                        return acc;
+                                    }, {} as Record<number, number>);
+
+                                    const totalHT = selectedOrder.total / (1 + (Object.keys(tvaByCat)[0] ? parseFloat(Object.keys(tvaByCat)[0]) : 10) / 100);
+                                    const totalTVA = selectedOrder.total - totalHT;
+
+                                    return (
+                                        <>
+                                            <div className="flex justify-between text-sm font-black text-slate-600">
+                                                <span>Total HT</span>
+                                                <span>{totalHT.toFixed(2)} €</span>
+                                            </div>
+                                            {Object.entries(tvaByCat).map(([rate, amount]) => (
+                                                <div key={rate} className="flex justify-between text-sm font-black text-slate-600">
+                                                    <span>TVA {rate}%</span>
+                                                    <span>{amount.toFixed(2)} €</span>
+                                                </div>
+                                            ))}
+                                        </>
+                                    );
+                                })()}
+                            </div>
+
                             <div className="flex justify-between items-end mb-8">
-                                <span className="text-slate-400 font-black uppercase tracking-[0.3em] text-sm">TOTAL À PAYER</span>
+                                <span className="text-slate-400 font-black uppercase tracking-[0.3em] text-sm">TOTAL TTC</span>
                                 <span className="text-6xl font-black text-slate-950 tracking-tighter">{selectedOrder.total.toFixed(2)} €</span>
                             </div>
 
