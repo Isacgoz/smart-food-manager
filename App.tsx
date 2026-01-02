@@ -3,7 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { AppProvider, useStore } from './store';
 import Layout from './components/Layout';
+import MobileLayout from './components/MobileLayout';
 import NetworkStatus from './components/NetworkStatus';
+import PWAInstallPrompt from './components/PWAInstallPrompt';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Stocks from './pages/Stocks';
@@ -22,6 +24,7 @@ import { hasFeature } from './services/subscription';
 import { Lock } from 'lucide-react';
 import { useAutoLock } from './shared/hooks/useAutoLock';
 import { registerServiceWorker } from './shared/hooks/usePWA';
+import { useMobile } from './shared/hooks/useMobile';
 
 // Permissions par rôle (Sécurité)
 const ROLE_ROUTES: Record<Role, string[]> = {
@@ -54,6 +57,7 @@ const ProtectedRoute: React.FC<{ feature: 'hasERP' | 'hasStats', children: React
 const AppContent: React.FC = () => {
   const { currentUser, logout } = useStore();
   const [currentView, setCurrentView] = useState('pos');
+  const isMobile = useMobile();
 
   // Auto-lock après 2 min inactivité (SÉCURITÉ CRITIQUE)
   useAutoLock(logout, 120000); // 2 minutes
@@ -107,6 +111,16 @@ const AppContent: React.FC = () => {
     }
   };
 
+  // Mode mobile: Layout simplifié pour serveurs
+  if (isMobile) {
+    return (
+      <MobileLayout currentView={currentView} setView={setCurrentView}>
+        {renderView()}
+      </MobileLayout>
+    );
+  }
+
+  // Mode desktop: Layout complet pour gérants
   return (
     <Layout currentView={currentView} setView={setCurrentView}>
       {renderView()}
@@ -155,6 +169,7 @@ const App: React.FC = () => {
     <AppProvider restaurant={restaurantProfile} onRestaurantLogout={handleSaaSLogout}>
       <Toaster />
       <NetworkStatus />
+      <PWAInstallPrompt />
       <AppContent />
     </AppProvider>
   );
