@@ -72,9 +72,9 @@ const Purchases: React.FC = () => {
                         {newOrder.items.length === 0 && <p className="text-center text-slate-300 font-bold text-xs py-4">Aucun article ajouté</p>}
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
-                         <div className="md:col-span-2">
-                            <select 
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                         <div className="md:col-span-6">
+                            <select
                                 className="w-full p-3 border border-slate-200 rounded-xl text-sm bg-white font-black text-slate-950"
                                 value={tempOrderItem.ingredientId} onChange={e => setTempOrderItem({...tempOrderItem, ingredientId: e.target.value})}
                             >
@@ -82,20 +82,24 @@ const Purchases: React.FC = () => {
                                 {ingredients.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
                             </select>
                          </div>
-                         <input type="number" placeholder="Qté" 
-                            className="w-full p-3 border border-slate-200 rounded-xl text-sm bg-white font-black text-slate-950" 
-                            value={tempOrderItem.qty || 0} 
-                            onFocus={(e) => e.target.select()}
-                            onChange={e => setTempOrderItem({...tempOrderItem, qty: parseFloat(e.target.value)})} />
-                         <div className="flex gap-1">
-                            <input type="number" placeholder="Prix" 
-                                className="w-full p-3 border border-slate-200 rounded-xl text-sm bg-white font-black text-slate-950" 
-                                value={tempOrderItem.cost || 0} 
+                         <div className="md:col-span-2">
+                            <input type="number" placeholder="Qté"
+                                className="w-full p-3 border border-slate-200 rounded-xl text-sm bg-white font-black text-slate-950"
+                                value={tempOrderItem.qty || 0}
+                                onFocus={(e) => e.target.select()}
+                                onChange={e => setTempOrderItem({...tempOrderItem, qty: parseFloat(e.target.value)})} />
+                         </div>
+                         <div className="md:col-span-3">
+                            <input type="number" placeholder="Prix Total €"
+                                className="w-full p-3 border border-slate-200 rounded-xl text-sm bg-white font-black text-slate-950"
+                                value={tempOrderItem.cost || 0}
                                 onFocus={(e) => e.target.select()}
                                 onChange={e => setTempOrderItem({...tempOrderItem, cost: parseFloat(e.target.value)})} />
-                            <button 
+                         </div>
+                         <div className="md:col-span-1">
+                            <button
                                 onClick={() => { if(tempOrderItem.ingredientId && tempOrderItem.qty > 0) { setNewOrder({ ...newOrder, items: [...newOrder.items, tempOrderItem] }); setTempOrderItem({ ingredientId: '', qty: 0, cost: 0 }); } }}
-                                className="bg-slate-950 text-white p-3 rounded-xl hover:bg-black transition-all shadow-lg active:scale-90"
+                                className="w-full bg-slate-950 text-white p-3 rounded-xl hover:bg-black transition-all shadow-lg active:scale-90"
                             ><Plus size={24}/></button>
                          </div>
                     </div>

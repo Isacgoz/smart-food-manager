@@ -19,9 +19,9 @@ const Menu: React.FC = () => {
   // Helper for recipe builder
   const [tempRecipeItem, setTempRecipeItem] = useState({ ingredientId: '', quantity: 0 });
 
-  const calculateCost = (recipe: RecipeItem[], price: number, vatRate: number) => {
+  const calculateCost = (recipe: RecipeItem[]) => {
     if (!recipe || recipe.length === 0) {
-      return price / (1 + vatRate / 100);
+      return 0;
     }
     return recipe.reduce((total, item) => {
         const ing = ingredients.find(i => i.id === item.ingredientId);
@@ -29,7 +29,7 @@ const Menu: React.FC = () => {
     }, 0);
   };
 
-  const currentCost = calculateCost(formData.recipe || [], formData.price || 0, formData.vatRate || 10);
+  const currentCost = calculateCost(formData.recipe || []);
   const margin = (formData.price || 0) / (1 + (formData.vatRate||0)/100) - currentCost;
 
   const handleEdit = (product: Product) => {
@@ -98,7 +98,7 @@ const Menu: React.FC = () => {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                     {products.map(p => {
-                        const cost = calculateCost(p.recipe, p.price, p.vatRate);
+                        const cost = calculateCost(p.recipe);
                         const pMargin = (p.price / (1 + p.vatRate/100)) - cost;
                         return (
                             <tr key={p.id} className="hover:bg-slate-50 transition-colors">
