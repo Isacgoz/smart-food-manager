@@ -77,23 +77,23 @@ const Users: React.FC = () => {
                         
                         <div className="space-y-4">
                             <div>
-                                <label className="text-sm font-bold text-slate-700">Nom Complet</label>
-                                <input type="text" placeholder="Ex: Jean Dupont" className="w-full p-2 border rounded text-slate-900" 
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Nom Complet</label>
+                                <input type="text" placeholder="Ex: Jean Dupont" className="w-full p-2 border rounded text-slate-900"
                                     value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
                             </div>
-                            
+
                             <div>
-                                <label className="text-sm font-bold text-slate-700">Code PIN (4-6 chiffres)</label>
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Code PIN (4-6 chiffres)</label>
                                 <input type="text" placeholder="Ex: 12345" className="w-full p-2 border rounded text-slate-900 font-mono tracking-widest" maxLength={6}
                                     value={formData.pin} onChange={e => {
                                         if(/^\d*$/.test(e.target.value)) setFormData({...formData, pin: e.target.value})
                                     }} />
                                  <p className="text-xs text-gray-500 mt-1">Utilisé pour la connexion POS</p>
                             </div>
-                            
+
                             <div>
-                                <label className="text-sm font-bold text-slate-700">Rôle (Droits d'accès)</label>
-                                <select className="w-full p-2 border rounded bg-white text-slate-900" 
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Rôle (Droits d'accès)</label>
+                                <select className="w-full p-2 border rounded bg-white text-slate-900"
                                     value={formData.role} onChange={e => setFormData({...formData, role: e.target.value as any})}>
                                     <option value="OWNER">Gérant (Accès Total + Admin)</option>
                                     <option value="MANAGER">Manager (Stocks + Menu + Caisse)</option>

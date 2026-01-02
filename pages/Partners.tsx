@@ -174,18 +174,30 @@ const Partners: React.FC = () => {
                             </div>
                             
                             <div className="space-y-4">
-                                <input type="text" placeholder="NOM COMPLET / SOCIÉTÉ" className="w-full p-5 bg-slate-50 border-2 border-transparent rounded-[20px] font-black text-slate-950 outline-none focus:border-slate-900 transition-all uppercase" value={newPartner.name} onChange={e => setNewPartner({...newPartner, name: e.target.value})} />
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Nom / Société</label>
+                                    <input type="text" placeholder="Ex: Jean Dupont ou SARL Martin" className="w-full p-5 bg-slate-50 border-2 border-transparent rounded-[20px] font-black text-slate-950 outline-none focus:border-slate-900 transition-all" value={newPartner.name} onChange={e => setNewPartner({...newPartner, name: e.target.value})} />
+                                </div>
                                 {newPartner.type !== 'CLIENT' && (
-                                    <select className="w-full p-5 bg-slate-50 border-2 border-transparent rounded-[20px] font-black text-slate-950 outline-none focus:border-slate-900 transition-all uppercase" value={newPartner.type} onChange={e => setNewPartner({...newPartner, type: e.target.value as any})}>
-                                        <option value="SUPPLIER">Fournisseur Marchandise</option>
-                                        <option value="MAINTENANCE">Maintenance / Réparation</option>
-                                        <option value="DELIVERY">Livraison</option>
-                                        <option value="MARKETING">Marketing</option>
-                                        <option value="OTHER">Autre</option>
-                                    </select>
+                                    <div>
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Type de Professionnel</label>
+                                        <select className="w-full p-5 bg-slate-50 border-2 border-transparent rounded-[20px] font-black text-slate-950 outline-none focus:border-slate-900 transition-all" value={newPartner.type} onChange={e => setNewPartner({...newPartner, type: e.target.value as any})}>
+                                            <option value="SUPPLIER">Fournisseur Marchandise</option>
+                                            <option value="MAINTENANCE">Maintenance / Réparation</option>
+                                            <option value="DELIVERY">Livraison</option>
+                                            <option value="MARKETING">Marketing</option>
+                                            <option value="OTHER">Autre</option>
+                                        </select>
+                                    </div>
                                 )}
-                                <input type="email" placeholder="EMAIL" className="w-full p-5 bg-slate-50 border-2 border-transparent rounded-[20px] font-black text-slate-950 outline-none focus:border-slate-900 transition-all" value={newPartner.email} onChange={e => setNewPartner({...newPartner, email: e.target.value})} />
-                                <input type="tel" placeholder="NUMÉRO DE TÉLÉPHONE" className="w-full p-5 bg-slate-50 border-2 border-transparent rounded-[20px] font-black text-slate-950 outline-none focus:border-slate-900 transition-all" value={newPartner.phone} onChange={e => setNewPartner({...newPartner, phone: e.target.value})} />
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Email</label>
+                                    <input type="email" placeholder="exemple@restaurant.fr" className="w-full p-5 bg-slate-50 border-2 border-transparent rounded-[20px] font-black text-slate-950 outline-none focus:border-slate-900 transition-all" value={newPartner.email} onChange={e => setNewPartner({...newPartner, email: e.target.value})} />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Téléphone</label>
+                                    <input type="tel" placeholder="06 12 34 56 78" className="w-full p-5 bg-slate-50 border-2 border-transparent rounded-[20px] font-black text-slate-950 outline-none focus:border-slate-900 transition-all" value={newPartner.phone} onChange={e => setNewPartner({...newPartner, phone: e.target.value})} />
+                                </div>
                             </div>
 
                             <button onClick={handleAdd} className="w-full bg-emerald-600 text-white py-6 rounded-[24px] font-black text-lg shadow-xl shadow-emerald-100 active:scale-95 transition-all mt-4 uppercase tracking-tighter">

@@ -22,11 +22,11 @@ const Tables: React.FC = () => {
         </p>
         <div className="flex gap-4 items-end">
           <div className="flex-1">
-            <label className="block text-sm font-bold text-slate-700 mb-1">Nom Table / Zone</label>
+            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Nom Table / Zone</label>
             <input type="text" className="w-full p-2 border rounded text-slate-900" placeholder="T1, Terrasse, Bar..." value={newTable.name} onChange={e => setNewTable({...newTable, name: e.target.value})} />
           </div>
           <div className="w-32">
-            <label className="block text-sm font-bold text-slate-700 mb-1">Couverts</label>
+            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Couverts</label>
             <input type="number" className="w-full p-2 border rounded text-slate-900" value={newTable.seats} onChange={e => setNewTable({...newTable, seats: parseInt(e.target.value)})} />
           </div>
           <button onClick={handleAdd} className="bg-slate-800 text-white px-4 py-2 rounded hover:bg-slate-900 flex items-center gap-2">

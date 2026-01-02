@@ -103,14 +103,17 @@ const POS: React.FC = () => {
       <div className="flex-1 flex flex-col bg-white rounded-3xl shadow-sm overflow-hidden border border-slate-200">
         <div className="p-4 border-b flex flex-col gap-4 bg-slate-50/30">
             <div className="flex justify-between items-center">
-                <div className="flex items-center gap-2 w-1/3">
-                    <Utensils className="text-emerald-600" size={20}/>
-                    <input 
-                        type="text" 
-                        placeholder="N° Table / Emporter..." 
-                        className="w-full p-2 border-b border-slate-200 outline-none font-black text-slate-900 bg-transparent"
-                        value={tableName} onChange={e => setTableName(e.target.value)}
-                    />
+                <div className="w-1/3">
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Comptoir / Table</label>
+                    <div className="flex items-center gap-2">
+                        <Utensils className="text-emerald-600" size={20}/>
+                        <input
+                            type="text"
+                            placeholder="N° Table ou Emporter..."
+                            className="w-full p-2 border-b border-slate-200 outline-none font-black text-slate-900 bg-transparent"
+                            value={tableName} onChange={e => setTableName(e.target.value)}
+                        />
+                    </div>
                 </div>
 
                 {/* Customer Selector */}
@@ -138,12 +141,15 @@ const POS: React.FC = () => {
 
                     {showCustomerSearch && !selectedCustomer && (
                         <div className="absolute top-full left-0 w-full mt-2 bg-white border border-slate-200 shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-2xl z-50 p-4 animate-in slide-in-from-top-2">
-                            <div className="relative mb-3">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14}/>
-                                <input 
-                                    type="text" placeholder="Nom, Tel ou Email..." className="w-full pl-9 p-3 bg-slate-50 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-emerald-500 text-slate-950 font-black" 
-                                    value={custSearch} onChange={e => setCustSearch(e.target.value)} autoFocus
-                                />
+                            <div className="mb-3">
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Rechercher Client</label>
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14}/>
+                                    <input
+                                        type="text" placeholder="Nom, Tel ou Email..." className="w-full pl-9 p-3 bg-slate-50 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-emerald-500 text-slate-950 font-black"
+                                        value={custSearch} onChange={e => setCustSearch(e.target.value)} autoFocus
+                                    />
+                                </div>
                             </div>
                             <div className="max-h-60 overflow-y-auto no-scrollbar space-y-1">
                                 {filteredCustomers.map(c => (

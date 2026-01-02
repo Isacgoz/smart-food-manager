@@ -297,21 +297,24 @@ const Menu: React.FC = () => {
                 <div className="border-t pt-6 space-y-4">
                     <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Ajouter un ingrédient au stock</label>
                     <div className="flex flex-col gap-3">
-                        <select 
+                        <select
                             className="w-full p-4 border border-slate-200 rounded-2xl text-sm bg-slate-50 text-slate-950 font-black outline-none"
-                            value={tempRecipeItem.ingredientId} 
+                            value={tempRecipeItem.ingredientId}
                             onChange={e => setTempRecipeItem({...tempRecipeItem, ingredientId: e.target.value})}
                         >
                             <option value="">Sélectionner un ingrédient...</option>
                             {ingredients.map(i => <option key={i.id} value={i.id}>{i.name} ({i.unit})</option>)}
                         </select>
-                        <div className="flex gap-3">
-                            <input 
-                                type="number" className="flex-1 p-4 border border-slate-200 rounded-2xl text-sm text-slate-950 bg-slate-50 font-black outline-none focus:ring-4 focus:ring-blue-500/10" placeholder="Quantité"
-                                value={tempRecipeItem.quantity || ''} 
-                                onFocus={(e) => e.target.select()}
-                                onChange={e => setTempRecipeItem({...tempRecipeItem, quantity: parseFloat(e.target.value)})}
-                            />
+                        <div className="flex gap-3 items-end">
+                            <div className="flex-1">
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Quantité (Unité)</label>
+                                <input
+                                    type="number" className="w-full p-4 border border-slate-200 rounded-2xl text-sm text-slate-950 bg-slate-50 font-black outline-none focus:ring-4 focus:ring-blue-500/10" placeholder="0"
+                                    value={tempRecipeItem.quantity || ''}
+                                    onFocus={(e) => e.target.select()}
+                                    onChange={e => setTempRecipeItem({...tempRecipeItem, quantity: parseFloat(e.target.value)})}
+                                />
+                            </div>
                              <button 
                                 onClick={() => {
                                     if(tempRecipeItem.ingredientId && tempRecipeItem.quantity > 0) {
