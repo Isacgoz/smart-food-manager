@@ -113,7 +113,7 @@ export const calculateProductCost = (
     const ingredient = ingredients.find(i => i.id === recipeItem.ingredientId);
     if (!ingredient) return total;
 
-    return total + (ingredient.pmp * recipeItem.quantity);
+    return total + (ingredient.averageCost * recipeItem.quantity);
   }, 0);
 };
 
