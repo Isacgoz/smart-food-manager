@@ -15,6 +15,7 @@ export interface User {
 export interface Order {
   id: string;
   number: number;
+  invoiceNumber?: string; // Numérotation inaltérable (ex: 2025-000123)
   items: OrderItem[];
   total: number;
   status: 'PENDING' | 'COMPLETED' | 'CANCELLED';
@@ -24,6 +25,10 @@ export interface Order {
   tableId?: string;
   userId: string; // Prise de commande
   paidByUserId?: string; // ENCAISSEMENT (Crucial pour l'audit)
+  serverId?: string; // Serveur ayant pris la commande
+  notes?: string; // Notes commande
+  paidAt?: string; // Timestamp paiement
+  createdAt?: string; // Timestamp création
   version?: number; // Optimistic locking
   updatedAt?: string;
 }
@@ -60,12 +65,32 @@ export interface OrderItem {
   note?: string; 
 }
 
-export interface RestaurantProfile { 
-  id: string; 
-  name: string; 
-  ownerEmail: string; 
-  plan: PlanType; 
-  createdAt: string; 
+export interface RestaurantProfile {
+  id: string;
+  name: string;
+  ownerEmail: string;
+  plan: PlanType;
+  createdAt: string;
+}
+
+// Alias pour compatibilité
+export type Restaurant = Company;
+
+export interface Company {
+  id: string;
+  name: string; // Nom commercial
+  legalName?: string; // Raison sociale (si différent)
+  siren?: string; // SIREN (9 chiffres) - OBLIGATOIRE France
+  siret?: string; // SIRET (14 chiffres) - OBLIGATOIRE France
+  vatNumber?: string; // Numéro TVA intracommunautaire
+  address?: string; // Adresse complète
+  postalCode?: string;
+  city?: string;
+  country?: string;
+  phone?: string;
+  email?: string;
+  plan: 'SOLO' | 'TEAM' | 'BUSINESS';
+  status?: 'active' | 'suspended' | 'trial';
 }
 
 export interface CashDeclaration { 
