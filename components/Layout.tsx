@@ -3,16 +3,16 @@ import React from 'react';
 import { useStore } from '../store';
 import {
   LayoutDashboard, ShoppingCart, ChefHat,
-  UtensilsCrossed, LogOut, Users, FileText, ArrowLeftCircle, AlertCircle, X, Package, CreditCard, HeartHandshake, Database, CookingPot, DollarSign
+  UtensilsCrossed, LogOut, Users, FileText, ArrowLeftCircle, AlertCircle, X, Package, CreditCard, HeartHandshake, Database, CookingPot, DollarSign, LayoutGrid
 } from 'lucide-react';
 import { hasFeature } from '../services/subscription';
 import { Role } from '../types';
 
 // Permissions strictes par rôle
 const ROLE_ROUTES: Record<Role, string[]> = {
-  OWNER: ['dashboard', 'kitchen', 'stocks', 'purchases', 'partners', 'menu', 'pos', 'users', 'orders', 'backup', 'expenses'],
-  MANAGER: ['dashboard', 'kitchen', 'stocks', 'purchases', 'menu', 'pos', 'orders', 'backup', 'expenses'],
-  SERVER: ['pos', 'kitchen', 'orders'],
+  OWNER: ['dashboard', 'kitchen', 'stocks', 'purchases', 'partners', 'menu', 'pos', 'users', 'orders', 'backup', 'expenses', 'tables'],
+  MANAGER: ['dashboard', 'kitchen', 'stocks', 'purchases', 'menu', 'pos', 'orders', 'backup', 'expenses', 'tables'],
+  SERVER: ['pos', 'kitchen', 'orders', 'tables'],
   COOK: ['kitchen']
 };
 
@@ -32,6 +32,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentView, setView }) => {
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'kitchen', label: 'Cuisine (KDS)', icon: CookingPot },
     { id: 'pos', label: 'Caisse (POS)', icon: ShoppingCart },
+    { id: 'tables', label: 'Gestion Tables', icon: LayoutGrid },
     { id: 'orders', label: 'Historique Factures', icon: FileText },
     { id: 'menu', label: 'Produits & Recettes', icon: UtensilsCrossed },
     { id: 'stocks', label: 'Gestion Stocks', icon: Package },
