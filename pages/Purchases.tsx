@@ -73,7 +73,7 @@ const Purchases: React.FC = () => {
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
-                         <div className="md:col-span-6">
+                         <div className="md:col-span-5">
                             <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Ingrédient</label>
                             <select
                                 className="w-full p-3 border border-slate-200 rounded-xl text-sm bg-white font-black text-slate-950"
@@ -99,11 +99,11 @@ const Purchases: React.FC = () => {
                                 onFocus={(e) => e.target.select()}
                                 onChange={e => setTempOrderItem({...tempOrderItem, cost: parseFloat(e.target.value)})} />
                          </div>
-                         <div className="md:col-span-1">
+                         <div className="md:col-span-2">
                             <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1 invisible">Action</label>
                             <button
                                 onClick={() => { if(tempOrderItem.ingredientId && tempOrderItem.qty > 0) { setNewOrder({ ...newOrder, items: [...newOrder.items, tempOrderItem] }); setTempOrderItem({ ingredientId: '', qty: 0, cost: 0 }); } }}
-                                className="w-full bg-slate-950 text-white p-3 rounded-xl hover:bg-black transition-all shadow-lg active:scale-90"
+                                className="w-full bg-slate-950 text-white p-3 rounded-xl hover:bg-black transition-all shadow-lg active:scale-90 flex items-center justify-center"
                                 title="Ajouter à la commande"
                             ><Plus size={24}/></button>
                          </div>
