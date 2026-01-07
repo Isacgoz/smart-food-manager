@@ -25,6 +25,7 @@ import { Lock } from 'lucide-react';
 import { useAutoLock } from './shared/hooks/useAutoLock';
 import { registerServiceWorker } from './shared/hooks/usePWA';
 import { useMobile } from './shared/hooks/useMobile';
+import { initMonitoring, initWebVitals, setUserContext } from './shared/services/monitoring';
 
 // Permissions par rôle (Sécurité)
 const ROLE_ROUTES: Record<Role, string[]> = {
@@ -61,6 +62,11 @@ const AppContent: React.FC = () => {
 
   // Auto-lock après 2 min inactivité (SÉCURITÉ CRITIQUE)
   useAutoLock(logout, 120000); // 2 minutes
+
+  // Set contexte utilisateur pour Sentry quand user change
+  useEffect(() => {
+    setUserContext(currentUser);
+  }, [currentUser]);
 
   if (!currentUser) {
     return <Login />;
@@ -144,9 +150,11 @@ const App: React.FC = () => {
       setLoading(false);
   }, []);
 
-  // Enregistrer Service Worker au démarrage
+  // Initialiser monitoring + Service Worker au démarrage
   useEffect(() => {
     registerServiceWorker();
+    initMonitoring();
+    initWebVitals();
   }, []);
 
   const handleSaaSLogin = (profile: RestaurantProfile) => {
