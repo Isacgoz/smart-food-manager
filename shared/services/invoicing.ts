@@ -72,19 +72,21 @@ export const generateInvoiceNumber = (
 };
 
 // Calcul TVA par ligne (France restauration)
+// Prix en entrée sont TTC, on reverse-calcule le HT
 export const calculateVATLine = (
-  priceHT: number,
+  priceTTC: number,
   quantity: number,
   vatRate: number
 ): InvoiceLineItem => {
-  const totalHT = priceHT * quantity;
+  const unitPriceHT = priceTTC / (1 + vatRate / 100);
+  const totalHT = unitPriceHT * quantity;
   const vatAmount = totalHT * (vatRate / 100);
   const totalTTC = totalHT + vatAmount;
 
   return {
     description: '',
     quantity,
-    unitPriceHT: priceHT,
+    unitPriceHT: Number(unitPriceHT.toFixed(2)),
     totalHT: Number(totalHT.toFixed(2)),
     vatRate,
     vatAmount: Number(vatAmount.toFixed(2)),

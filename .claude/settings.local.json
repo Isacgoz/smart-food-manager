@@ -28,7 +28,11 @@
       "Bash(open:*)",
       "Bash(npx vercel --prod)",
       "Bash(npx vercel --prod --yes)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(tree:*)",
+      "Bash(wc:*)",
+      "Bash(du:*)",
+      "Bash(cd:*)"
     ]
   }
 }

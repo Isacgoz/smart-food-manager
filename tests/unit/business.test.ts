@@ -3,9 +3,10 @@ import {
   validateStockBeforeOrder,
   destockIngredients,
   calculatePMP,
+  calculateProductCost,
   mergeOrders
-} from '../shared/services/business';
-import type { Product, Ingredient, OrderItem, Order } from '../shared/types';
+} from '../../shared/services/business';
+import type { Product, Ingredient, OrderItem, Order } from '../../shared/types';
 
 describe('Business Logic - Stock Management', () => {
   describe('validateStockBeforeOrder', () => {
@@ -121,6 +122,96 @@ describe('Business Logic - Stock Management', () => {
     it('devrait retourner unitCost si stock = 0', () => {
       const newPMP = calculatePMP(0, 0, 100, 7);
       expect(newPMP).toBe(7);
+    });
+  });
+
+  describe('calculateProductCost', () => {
+    it('devrait calculer coût matière produit avec recette', () => {
+      const product: Product = {
+        id: 'p1',
+        name: 'Burger Classique',
+        price: 9.90,
+        category: 'Burgers',
+        recipe: [
+          { ingredientId: 'i1', quantity: 1 },    // Pain
+          { ingredientId: 'i2', quantity: 0.150 }, // Steak 150g
+          { ingredientId: 'i3', quantity: 1 }     // Fromage
+        ]
+      };
+
+      const ingredients: Ingredient[] = [
+        { id: 'i1', name: 'Pain', stock: 50, unit: 'pièce', category: 'Boulangerie', averageCost: 0.35 },
+        { id: 'i2', name: 'Steak', stock: 5, unit: 'kg', category: 'Viande', averageCost: 8.50 },
+        { id: 'i3', name: 'Fromage', stock: 30, unit: 'tranche', category: 'Laitier', averageCost: 0.42 }
+      ];
+
+      const cost = calculateProductCost(product, ingredients);
+
+      // 0.35 + (0.150 × 8.50) + 0.42 = 0.35 + 1.275 + 0.42 = 2.045
+      expect(cost).toBeCloseTo(2.045, 3);
+    });
+
+    it('devrait retourner 0 si pas de recette', () => {
+      const product: Product = {
+        id: 'p2',
+        name: 'Coca-Cola',
+        price: 2.50,
+        category: 'Boissons',
+        recipe: []
+      };
+
+      const ingredients: Ingredient[] = [];
+
+      const cost = calculateProductCost(product, ingredients);
+
+      expect(cost).toBe(0);
+    });
+
+    it('devrait ignorer ingrédients introuvables', () => {
+      const product: Product = {
+        id: 'p1',
+        name: 'Burger',
+        price: 10,
+        category: 'Burgers',
+        recipe: [
+          { ingredientId: 'i1', quantity: 1 },
+          { ingredientId: 'i999', quantity: 0.5 } // N'existe pas
+        ]
+      };
+
+      const ingredients: Ingredient[] = [
+        { id: 'i1', name: 'Pain', stock: 50, unit: 'pièce', category: 'Boulangerie', averageCost: 0.35 }
+      ];
+
+      const cost = calculateProductCost(product, ingredients);
+
+      expect(cost).toBe(0.35); // Seulement le pain
+    });
+
+    it('devrait calculer marge brute correctement', () => {
+      const product: Product = {
+        id: 'p1',
+        name: 'Burger',
+        price: 9.90,
+        category: 'Burgers',
+        recipe: [
+          { ingredientId: 'i1', quantity: 1 },
+          { ingredientId: 'i2', quantity: 0.150 }
+        ]
+      };
+
+      const ingredients: Ingredient[] = [
+        { id: 'i1', name: 'Pain', stock: 50, unit: 'pièce', category: 'Boulangerie', averageCost: 0.35 },
+        { id: 'i2', name: 'Steak', stock: 5, unit: 'kg', category: 'Viande', averageCost: 8.50 }
+      ];
+
+      const cost = calculateProductCost(product, ingredients);
+      const margin = product.price - cost;
+      const marginPercent = (margin / product.price) * 100;
+
+      expect(cost).toBeCloseTo(1.625, 3); // 0.35 + 1.275
+      expect(margin).toBeCloseTo(8.275, 3);
+      expect(marginPercent).toBeCloseTo(83.6, 1); // Excellente marge
     });
   });
 

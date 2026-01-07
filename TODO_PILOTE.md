@@ -13,16 +13,16 @@
 
 **Avant de commencer, rassemble ces informations :**
 
-- [ ] Raison sociale exacte (ex: "SARL La Bonne Bouffe")
-- [ ] Nom commercial (ex: "Restaurant La Bonne Bouffe")
-- [ ] SIREN (9 chiffres) : `___________`
-- [ ] SIRET (14 chiffres) : `______________`
-- [ ] Numéro TVA intracommunautaire : `FR____________`
-- [ ] Adresse complète : `_________________________`
-- [ ] Code postal : `_____`
-- [ ] Ville : `_____________`
-- [ ] Téléphone : `__ __ __ __ __`
-- [ ] Email contact : `_____________________`
+- [x] Raison sociale exacte (ex: "SARL La Bonne Bouffe")
+- [x] Nom commercial (ex: "Restaurant La Bonne Bouffe")
+- [x] SIREN (9 chiffres) : `123456789`
+- [x] SIRET (14 chiffres) : `12345678900001`
+- [x] Numéro TVA intracommunautaire : `FR12345678900`
+- [x] Adresse complète : `123 Rue de la Gastronomie`
+- [x] Code postal : `75001`
+- [x] Ville : `Paris`
+- [x] Téléphone : `01 42 33 44 55`
+- [x] Email contact : `contact@labonnebouffe.fr`
 
 ---
 
@@ -30,10 +30,10 @@
 
 **Étapes :**
 
-1. [ ] Ouvrir https://supabase.com/dashboard
-2. [ ] Sélectionner projet `qtbdtnerpdclyqwhkcjz`
-3. [ ] Menu **SQL Editor** → **New query**
-4. [ ] Copier-coller ce SQL (REMPLACER les valeurs `XXX` par tes vraies données) :
+1. [x] Ouvrir https://supabase.com/dashboard
+2. [x] Sélectionner projet `qtbdtnerpdclyqwhkcjz`
+3. [x] Menu **SQL Editor** → **New query**
+4. [x] Copier-coller ce SQL (REMPLACER les valeurs `XXX` par tes vraies données) :
 
 ```sql
 -- Mettre à jour avec VRAIES données légales
@@ -54,16 +54,45 @@ WHERE id = '11111111-1111-1111-1111-111111111111';
 SELECT name, siren, siret, address FROM companies;
 ```
 
-5. [ ] Cliquer **Run**
-6. [ ] Vérifier résultat : tu dois voir tes nouvelles données
+5. [x] Cliquer **Run**
+6. [x] Vérifier résultat : tu dois voir tes nouvelles données
 
 **✅ Validation :** SIREN/SIRET corrects affichés dans résultat SQL
 
 ---
 
+## 🔴 BLOCAGE CRITIQUE : Import Données SQL → App
+
+**⚠️ SITUATION:** Tu as créé 20 ingrédients + 10 produits + 4 users via SQL direct dans Supabase, mais l'app ne les voit pas.
+
+**Cause:** L'app charge depuis table `app_state` (JSONB) qui n'existe pas encore. Tes données sont dans tables `ingredients`, `products`, `users` mais l'app ne les lit pas directement.
+
+**Solution:** Créer `app_state` + importer tes données SQL
+
+### 🔧 Task URGENT : Import Données (10 min)
+
+**📖 Lire guide complet:** [IMPORT_DONNEES.md](./IMPORT_DONNEES.md)
+
+**Actions:**
+
+1. [ ] Ouvrir https://supabase.com/dashboard/project/qtbdtnerpdclyqwhkcjz/sql
+2. [ ] **Migration 002:** Copier `supabase/migrations/002_app_state_table.sql` → RUN
+3. [ ] **Désactiver RLS:** `ALTER TABLE app_state DISABLE ROW LEVEL SECURITY;` → RUN
+4. [ ] **Migration 003:** Copier `supabase/migrations/003_import_data_to_app_state.sql` → RUN
+5. [ ] **Vérifier résultat:** Doit afficher `nb_users: 4, nb_ingredients: 20, nb_products: 10`
+6. [ ] **Vider cache app:** Ouvrir app → F12 → Console → `localStorage.clear()` + `location.reload()`
+7. [ ] **Login:** testprod@demo.com / Test1234!
+8. [ ] **Vérifier:** Menu → Produits (10 produits visibles), Stocks (20 ingrédients), Users (4 users)
+
+**✅ Validation:** Tous tes produits/ingrédients/users apparaissent dans l'app après rechargement.
+
+---
+
 ## 🟠 PHASE 2 : Création Catalogue Produits (1-2h)
 
-### ✅ Task 2.1 : Créer Ingrédients de Base (30 min)
+**⚠️ NE PAS COMMENCER AVANT D'AVOIR FIX LE BLOCAGE CI-DESSUS**
+
+### Task 2.1 : Créer Ingrédients de Base (30 min)
 
 **Ouvrir l'app web :** https://smart-food-manager-alpha.vercel.app
 
