@@ -26,6 +26,7 @@ import { useAutoLock } from './shared/hooks/useAutoLock';
 import { registerServiceWorker } from './shared/hooks/usePWA';
 import { useMobile } from './shared/hooks/useMobile';
 import { initMonitoring, initWebVitals, setUserContext } from './shared/services/monitoring';
+import { scheduledBackup } from './shared/services/backup';
 
 // Permissions par rôle (Sécurité)
 const ROLE_ROUTES: Record<Role, string[]> = {
@@ -56,7 +57,7 @@ const ProtectedRoute: React.FC<{ feature: 'hasERP' | 'hasStats', children: React
 };
 
 const AppContent: React.FC = () => {
-  const { currentUser, logout } = useStore();
+  const { currentUser, logout, restaurant, data } = useStore();
   const [currentView, setCurrentView] = useState('pos');
   const isMobile = useMobile();
 
@@ -67,6 +68,37 @@ const AppContent: React.FC = () => {
   useEffect(() => {
     setUserContext(currentUser);
   }, [currentUser]);
+
+  // Backup automatique quotidien (3h du matin)
+  useEffect(() => {
+    if (!restaurant?.id || !currentUser) return;
+
+    const scheduleBackup = () => {
+      const now = new Date();
+      const next3AM = new Date();
+      next3AM.setHours(3, 0, 0, 0);
+      
+      // Si déjà passé 3h aujourd'hui, programmer pour demain
+      if (now > next3AM) {
+        next3AM.setDate(next3AM.getDate() + 1);
+      }
+
+      const msUntil3AM = next3AM.getTime() - now.getTime();
+
+      const timeoutId = setTimeout(async () => {
+        console.info('[BACKUP] Démarrage backup automatique quotidien');
+        await scheduledBackup(restaurant.id, data);
+        
+        // Reprogrammer pour le lendemain
+        scheduleBackup();
+      }, msUntil3AM);
+
+      return timeoutId;
+    };
+
+    const timeoutId = scheduleBackup();
+    return () => clearTimeout(timeoutId);
+  }, [restaurant?.id, currentUser, data]);
 
   if (!currentUser) {
     return <Login />;
