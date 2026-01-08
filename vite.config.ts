@@ -17,6 +17,9 @@ export default defineConfig({
     target: 'es2020',
     minify: 'terser',
     sourcemap: false,
+    rollupOptions: {
+      external: [/^api\//],
+    },
     terserOptions: {
       compress: {
         drop_console: true,

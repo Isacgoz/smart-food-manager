@@ -1,6 +1,3 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { createClient } from '@supabase/supabase-js';
-
 /**
  * Vercel Cron Job - Automated Daily Backup
  * 
@@ -10,15 +7,15 @@ import { createClient } from '@supabase/supabase-js';
  * This endpoint is called by Vercel Cron to automatically backup
  * all company data to Supabase Storage.
  */
-export default async function handler(
-  req: VercelRequest,
-  res: VercelResponse
-) {
+export default async function handler(req, res) {
   // Verify this is a cron request (security check)
   const authHeader = req.headers.authorization;
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
+
+  // Dynamic import to avoid build issues
+  const { createClient } = await import('@supabase/supabase-js');
 
   try {
     // Initialize Supabase client
