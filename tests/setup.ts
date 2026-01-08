@@ -33,3 +33,21 @@ vi.mock('../services/storage', () => ({
   loadState: vi.fn(() => Promise.resolve(null)),
   saveState: vi.fn(() => Promise.resolve()),
 }));
+
+// Mock Monitoring (Sentry)
+vi.mock('../shared/services/monitoring', () => ({
+  initMonitoring: vi.fn(),
+  initWebVitals: vi.fn(),
+  setUserContext: vi.fn(),
+  captureBusinessError: vi.fn(),
+  captureTechnicalError: vi.fn(),
+  trackMetric: vi.fn(),
+  trackEvent: vi.fn(),
+  businessAlerts: {
+    stockNegative: vi.fn(),
+    cashDiscrepancy: vi.fn(),
+    dbSyncFailed: vi.fn(),
+    insufficientStock: vi.fn(),
+    lowMargin: vi.fn(),
+  },
+}));
