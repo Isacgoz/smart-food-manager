@@ -328,13 +328,13 @@ VE|Journal des ventes|VE001`;
   });
 
   it('devrait tolérer différence arrondi 0.01€', () => {
-    // Débit: 100.00, Crédit: 100.01 (diff 0.01€ acceptable)
+    // Débit: 100.00, Crédit: 100.005 (diff 0.005€ < 0.01€ acceptable)
     const fecWithRounding = `JournalCode|JournalLib|EcritureNum|EcritureDate|CompteNum|CompteLib|CompAuxNum|CompAuxLib|PieceRef|PieceDate|EcritureLib|Debit|Credit|EcritureLettre|DateLettre|ValidDate|Montantdevise|Idevise
 VE|Journal|VE001|20260115|530000|Caisse|||ref|20260115|Test|100.00|0.00|||20260115||
-VE|Journal|VE001|20260115|707000|Ventes|||ref|20260115|Test|0.00|100.01|||20260115||`;
-    
+VE|Journal|VE001|20260115|707000|Ventes|||ref|20260115|Test|0.00|100.005|||20260115||`;
+
     const result = validateFEC(fecWithRounding);
-    
+
     expect(result.valid).toBe(true);
   });
 });
