@@ -266,10 +266,10 @@ const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
                                 </button>
                             </div>
                         ))}
-                        <button onClick={() => setView('LOGIN')} className="w-full py-4 border-2 border-dashed border-slate-800 rounded-[28px] text-slate-500 text-sm font-bold hover:text-white hover:border-slate-600 transition-all mt-4">
+                        <button type="button" onClick={() => setView('LOGIN')} className="w-full py-4 border-2 border-dashed border-slate-800 rounded-[28px] text-slate-500 text-sm font-bold hover:text-white hover:border-slate-600 transition-all mt-4">
                             Connecter un autre établissement
                         </button>
-                        <button onClick={() => setView('REGISTER')} className="w-full text-center text-emerald-500 text-xs font-bold hover:underline mt-4">
+                        <button type="button" onClick={() => setView('REGISTER')} className="w-full text-center text-emerald-500 text-xs font-bold hover:underline mt-4">
                             Créer un nouveau restaurant
                         </button>
                     </div>
@@ -280,7 +280,7 @@ const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
                                 {view === 'LOGIN' ? 'Bon retour' : 'Inscription'}
                             </h2>
                             {accounts.length > 0 && (
-                                <button onClick={() => setView('SAVED')} className="text-[10px] font-black uppercase text-slate-500 hover:text-white transition-colors">Mes Comptes</button>
+                                <button type="button" onClick={() => setView('SAVED')} className="text-[10px] font-black uppercase text-slate-500 hover:text-white transition-colors">Mes Comptes</button>
                             )}
                         </div>
                         
@@ -310,7 +310,7 @@ const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
                             </button>
                         </form>
                         
-                        <button onClick={() => setView(view === 'LOGIN' ? 'REGISTER' : 'LOGIN')} className="w-full mt-8 text-xs text-slate-500 hover:text-white transition-colors font-bold uppercase tracking-widest">
+                        <button type="button" onClick={() => setView(view === 'LOGIN' ? 'REGISTER' : 'LOGIN')} className="w-full mt-8 text-xs text-slate-500 hover:text-white transition-colors font-bold uppercase tracking-widest">
                             {view === 'LOGIN' ? "Pas de compte ? S'inscrire" : "Déjà client ? Se connecter"}
                         </button>
                     </div>

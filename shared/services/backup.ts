@@ -8,7 +8,7 @@
  * - Fonction de restauration
  */
 
-import { supabase } from './storage';
+import { supabase } from '../../services/storage';
 import type { AppState } from '../types';
 
 export interface BackupMetadata {
