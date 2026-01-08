@@ -1,23 +1,23 @@
 # 📊 AVANCEMENT VERS 100% PRODUCTION-READY
 
-**Dernière mise à jour:** 8 Janvier 2026 14:17
-**Score actuel:** 70% → Objectif 100%
+**Dernière mise à jour:** 8 Janvier 2026 17:45
+**Score actuel:** 73% → Objectif 100%
 **Référence:** [ROADMAP_100_POURCENT.md](./ROADMAP_100_POURCENT.md)
 
 ---
 
-## 🎯 SCORE GLOBAL: 54/76 = 71%
+## 🎯 SCORE GLOBAL: 57/76 = 75%
 
 ### Répartition par catégorie
 
 | Catégorie | Complété | Total | % |
 |-----------|----------|-------|---|
 | Infrastructure | 8/8 | 8 | ✅ 100% |
-| Sécurité | 6/8 | 8 | 🟡 75% |
+| Sécurité | 7/8 | 8 | 🟢 88% |
 | Fonctionnalités | 14/15 | 15 | 🟡 93% |
 | Conformité Légale | 4/6 | 6 | 🟡 67% |
 | Tests & Qualité | 8/8 | 8 | ✅ 100% |
-| Documentation | 3/6 | 6 | 🟠 50% |
+| Documentation | 4/6 | 6 | 🟡 67% |
 | Performance | 5/8 | 8 | 🟡 63% |
 | Mobile | 4/6 | 6 | 🟡 67% |
 | Intégrations | 0/5 | 5 | 🔴 0% |
@@ -28,7 +28,7 @@
 ## 📋 SPRINTS EN COURS
 
 ### ✅ Sprint 1: Critical Path (Semaine 1-2) - 44h
-**Statut:** ✅ TERMINÉ (44h/44h complétées) - 8 Janvier 2026
+**Statut:** 🟢 EN COURS (37h/44h complétées - 84%) - 8 Janvier 2026
 
 #### Tests Automatisés (28h) ✅ COMPLET
 - [x] Vitest configuré
@@ -48,6 +48,25 @@
 **Complété:** 221/221 tests passent (100% ✅)
 **Temps réel:** 28h
 
+#### Corrections Production Critiques (5h) ✅ COMPLET
+- [x] Fix Vercel build failing (duplicate rollupOptions) ✅
+- [x] Fix TypeScript dans api/cron/ (converti .js) ✅
+- [x] Fix registration button (type="button") ✅
+- [x] Fix import backup.ts (path correct) ✅
+- [x] Créer BUGS_PRODUCTION.md (tracker) ✅
+
+**Complété:** 5/5 ✅
+**Temps réel:** 2h
+
+#### Migrations Multi-Tenant (4h) ✅ COMPLET
+- [x] Migration 005: Multi-tenant support (companies, RLS) ✅
+- [x] Migration 006: Test companies (Alpha/Beta/Gamma) ✅
+- [x] Documentation SUPABASE_SETUP.md ✅
+- [x] Push migrations sur GitHub ✅
+
+**Complété:** 4/4 ✅
+**Temps réel:** 3h
+
 #### Monitoring Sentry (8h)
 - [ ] Installer @sentry/react
 - [ ] Configurer VITE_SENTRY_DSN
@@ -60,23 +79,23 @@
 **Temps estimé restant:** 8h
 
 #### Backup Automatique (4h)
-- [ ] Créer bucket Supabase 'backups'
-- [ ] Script backup quotidien (cron 3h)
-- [ ] Rétention 30 jours
-- [ ] Interface restauration backup
-- [ ] Tests restauration
+- [x] Script backup cron créé (api/cron/backup.js) ✅
+- [x] Tests backup.test.ts (27 tests) ✅
+- [ ] Créer bucket Supabase 'backups' (à faire manuellement)
+- [ ] Tester backup cron avec CRON_SECRET
+- [ ] Interface restauration backup (optionnel)
 
-**Complété:** 0/5
-**Temps estimé restant:** 4h
+**Complété:** 2/5 (40%)
+**Temps estimé restant:** 2h
 
 #### Multi-Tenant Validation (4h)
-- [ ] Tests isolation restaurants A/B
-- [ ] Tests RLS PostgreSQL
+- [x] Migrations RLS créées (8 policies) ✅
+- [ ] Tests isolation restaurants A/B (après run migrations)
 - [ ] Vérification company_id partout
 - [ ] Audit SQL injection
 - [ ] Tests RGPD compliance
 
-**Complété:** 0/5
+**Complété:** 1/5 (20%)
 **Temps estimé restant:** 4h
 
 ---
@@ -236,21 +255,33 @@
 
 ## 🔴 BLOQUANTS CRITIQUES
 
-### 1. Certification NF525 ⚠️
+### 1. ~~Vercel Build Failing~~ ✅ RÉSOLU
+**Impact:** Bloquait déploiements production
+**Action:** Duplicate rollupOptions mergé + TypeScript converti .js
+**Commit:** `361913d` fix(build): Vercel deployment errors resolved
+**Status:** ✅ Déployé sur GitHub, Vercel devrait passer
+
+### 2. Multi-Tenant Migrations Pas Exécutées ⚠️
+**Impact:** RLS inactif, pas d'isolation données RGPD
+**Délai:** 10 min setup manuel
+**Action requise:**
+- Exécuter migration 005 sur Supabase (SQL Editor)
+- Exécuter migration 006 (test companies)
+- Configurer Vercel env vars (4 variables)
+- Tester isolation avec 2 users
+
+### 3. Backup Bucket Pas Créé ⚠️
+**Impact:** Backup cron va échouer
+**Délai:** 5 min setup manuel
+**Action requise:**
+- Créer bucket `backups` sur Supabase Storage
+- Tester cron manuellement: `curl /api/cron/backup?secret=...`
+
+### 4. Certification NF525 ⚠️
 **Impact:** BLOQUE commercialisation France
 **Délai:** 8-16 semaines
 **Coût:** 5-10K€
 **Action requise:** Démarrer Sprint 4 après Sprint 2
-
-### 2. Tests Coverage <80% ⚠️
-**Impact:** Risque régressions production
-**Délai:** 14h restantes Sprint 1
-**Action requise:** Compléter tests business.test.ts, expenses.test.ts, invoicing.test.ts
-
-### 3. Multi-Tenant Non Validé ⚠️
-**Impact:** Risque fuite données RGPD
-**Délai:** 4h Sprint 1
-**Action requise:** Tests isolation restaurants A/B
 
 ---
 
@@ -312,14 +343,28 @@
 ## 📈 PROGRESSION HEBDOMADAIRE
 
 ### Semaine du 6 Janvier 2026
-- ✅ Tests error-handling.test.ts créés (44 tests)
+- ✅ Tests error-handling.test.ts créés (31 tests)
 - ✅ Service csv-import.ts créé (600+ lignes)
 - ✅ Tests csv-import.test.ts créés (44 tests)
 - ✅ Fix bug CSV vide
 - ✅ Commit feat(csv): import service + validation
+- ✅ Fix Vercel build failing (duplicate rollupOptions)
+- ✅ Fix registration button (type="button" ajouté)
+- ✅ Fix import backup.ts (path ../../services/storage)
+- ✅ Migration 005: Multi-tenant support (companies + RLS)
+- ✅ Migration 006: Test companies (Alpha/Beta/Gamma)
+- ✅ SUPABASE_SETUP.md créé
+- ✅ BUGS_PRODUCTION.md créé
 
-**Heures:** 4h (Sprint 2)
-**Score:** +4% (62% → 66%)
+**Heures:** 9h (Sprint 1 + Sprint 2)
+**Score:** +4% (71% → 75%)
+
+**Commits:**
+- `d084f12` fix(production): backup import + registration button
+- `361913d` fix(build): Vercel deployment errors resolved
+- `6574e33` docs(bugs): update production issues tracker
+- `475d1d0` feat(db): multi-tenant migrations + test data
+- `fa0b039` docs(db): Supabase setup guide with migrations
 
 ### Semaine du 13 Janvier 2026 (Planifié)
 **Objectifs:**
@@ -501,19 +546,29 @@ ROI 12 mois: (7 824€ × 12) - 18 850€ = 75 038€
 
 ## 🎯 PROCHAINES ACTIONS
 
-### Cette semaine (Sem 2)
-1. ✅ ~~Terminer service CSV import~~ ✅ FAIT
-2. Créer tests business.test.ts (6h)
-3. Créer tests expenses.test.ts (3h)
-4. Créer tests invoicing.test.ts (3h)
-5. Setup Sentry monitoring (2h)
+### 🔥 URGENT - À faire MAINTENANT (Sem 2)
+1. ✅ ~~Fix Vercel build~~ ✅ FAIT
+2. ✅ ~~Fix registration button~~ ✅ FAIT
+3. ✅ ~~Créer migrations multi-tenant~~ ✅ FAIT
+4. **⏳ Vérifier Vercel deployment passe** (check dashboard)
+5. **⏳ Exécuter migration 005 sur Supabase** (10 min)
+6. **⏳ Exécuter migration 006 test companies** (2 min)
+7. **⏳ Configurer Vercel env vars** (4 variables - voir SUPABASE_SETUP.md)
+8. **⏳ Créer bucket Supabase 'backups'** (5 min)
+9. **⏳ Tester backup cron** (curl local)
+10. **⏳ Tester isolation 2 users** (RLS validation)
+
+### Cette semaine (Sem 2) - Après setup DB
+1. Setup Sentry monitoring (8h)
+2. Multi-tenant validation complète (4h)
+3. Commencer GUIDE_GERANT.md (4h)
+4. Export comptable CSV (4h)
 
 ### Semaine prochaine (Sem 3)
-1. Tests intégration sale-flow.test.ts (4h)
-2. Tests E2E pos.spec.ts (4h)
-3. Backup automatique (4h)
-4. Multi-tenant validation (4h)
-5. Commencer GUIDE_GERANT.md (4h)
+1. Tests E2E pos.spec.ts (4h)
+2. Gestion erreurs robuste (12h)
+3. Documentation complète (8h)
+4. Préparation pilote commercial
 
 ---
 
@@ -534,5 +589,5 @@ ROI 12 mois: (7 824€ × 12) - 18 850€ = 75 038€
 
 ---
 
-**Dernière mise à jour:** 8 Janvier 2026 16:30
-**Prochaine révision:** Vendredi 10 Janvier 2026
+**Dernière mise à jour:** 8 Janvier 2026 17:45
+**Prochaine révision:** Jeudi 9 Janvier 2026 (après setup DB)
