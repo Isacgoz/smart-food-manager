@@ -3,6 +3,7 @@ export type Role = 'OWNER' | 'MANAGER' | 'SERVER' | 'COOK';
 export type Unit = 'kg' | 'g' | 'L' | 'cl' | 'ml' | 'piece';
 export type PlanType = 'STARTER' | 'PRO' | 'BUSINESS';
 export type KitchenStatus = 'QUEUED' | 'PREPARING' | 'READY' | 'SERVED';
+export type StockPolicy = 'BLOCK' | 'WARN' | 'SILENT';
 
 export interface User {
   id: string;
@@ -65,7 +66,8 @@ export interface RestaurantProfile {
   name: string; 
   ownerEmail: string; 
   plan: PlanType; 
-  createdAt: string; 
+  createdAt: string;
+  stockPolicy?: StockPolicy;
 }
 
 export interface CashDeclaration { 
