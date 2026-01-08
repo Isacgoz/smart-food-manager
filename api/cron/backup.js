@@ -20,8 +20,8 @@ export default async function handler(req, res) {
   try {
     // Initialize Supabase client
     const supabase = createClient(
-      process.env.VITE_SUPABASE_URL!,
-      process.env.VITE_SUPABASE_ANON_KEY!
+      process.env.VITE_SUPABASE_URL,
+      process.env.VITE_SUPABASE_ANON_KEY
     );
 
     // Get all companies
