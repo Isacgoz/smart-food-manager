@@ -69,6 +69,7 @@ npm run dev
 - **[Optimisations](OPTIMISATIONS_APPLIQUEES.md)** - Métriques performance
 - **[PWA Guide](PHASE_5_PWA_COMPLETE.md)** - Progressive Web App
 - **[Mobile Offline](MOBILE_OFFLINE_QUEUE_COMPLETE.md)** - Queue offline mobile
+- **[Monitoring Sentry](docs/MONITORING.md)** - Error tracking et performance
 
 ## 🛠️ Stack Technologique
 

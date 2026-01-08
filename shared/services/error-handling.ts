@@ -17,6 +17,7 @@ import type {
   User,
   OrderItem
 } from '../types';
+import { businessAlerts } from './monitoring';
 
 /**
  * Types d'erreurs métier
@@ -116,6 +117,7 @@ export const validateStockWithPolicy = (
   orderItems: OrderItem[],
   products: Product[],
   ingredients: Ingredient[],
+  user: User,
   config: ErrorHandlingConfig = DEFAULT_ERROR_CONFIG
 ): StockValidationResult => {
   const errors: BusinessError[] = [];
@@ -199,6 +201,8 @@ export const validateStockWithPolicy = (
             `⚠️ Stock négatif après vente: "${ingredient.name}" (${missing.toFixed(2)} ${ingredient.unit} manquant)`,
             { ingredientId, ingredientName: ingredient.name, required, available, missing }
           ));
+          // Alerte Sentry stock négatif
+          businessAlerts.stockNegative(ingredient, available - required, user);
           break;
 
         case StockNegativePolicy.ALLOW:
@@ -212,6 +216,26 @@ export const validateStockWithPolicy = (
     config.stockNegativePolicy !== StockNegativePolicy.BLOCK ||
     missingIngredients.length === 0
   );
+
+  // Alerte Sentry si stock insuffisant (commande bloquée)
+  if (missingIngredients.length > 0 && !canProceed) {
+    const orderStub: Order = {
+      id: 'pending',
+      number: 0,
+      items: orderItems,
+      total: 0,
+      status: 'PENDING',
+      kitchenStatus: 'PENDING',
+      date: new Date().toISOString(),
+      userId: user.id,
+    } as Order;
+
+    businessAlerts.insufficientStock(orderStub, missingIngredients.map(mi => ({
+      name: mi.ingredientName,
+      required: mi.required,
+      available: mi.available,
+    })));
+  }
 
   return {
     valid: errors.length === 0 && warnings.length === 0,

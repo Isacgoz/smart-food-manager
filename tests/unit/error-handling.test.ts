@@ -21,6 +21,14 @@ import {
 import type { Order, Product, Ingredient, User, OrderItem } from '../../shared/types';
 
 describe('Error Handling - Validation Stock', () => {
+  const mockUser: User = {
+    id: 'user1',
+    email: 'test@restaurant.com',
+    name: 'Test User',
+    role: 'SERVER',
+    pin: '1234',
+  } as User;
+
   const mockIngredients: Ingredient[] = [
     {
       id: 'i1',
@@ -64,6 +72,7 @@ describe('Error Handling - Validation Stock', () => {
       orderItems,
       mockProducts,
       mockIngredients,
+      mockUser,
       { ...DEFAULT_ERROR_CONFIG, stockNegativePolicy: StockNegativePolicy.BLOCK }
     );
 
@@ -82,6 +91,7 @@ describe('Error Handling - Validation Stock', () => {
       orderItems,
       mockProducts,
       mockIngredients,
+      mockUser,
       { ...DEFAULT_ERROR_CONFIG, stockNegativePolicy: StockNegativePolicy.BLOCK }
     );
 
@@ -106,6 +116,7 @@ describe('Error Handling - Validation Stock', () => {
       orderItems,
       mockProducts,
       mockIngredients,
+      mockUser,
       { ...DEFAULT_ERROR_CONFIG, stockNegativePolicy: StockNegativePolicy.ALERT }
     );
 
@@ -125,6 +136,7 @@ describe('Error Handling - Validation Stock', () => {
       orderItems,
       mockProducts,
       mockIngredients,
+      mockUser,
       { ...DEFAULT_ERROR_CONFIG, stockNegativePolicy: StockNegativePolicy.ALLOW }
     );
 
@@ -168,6 +180,7 @@ describe('Error Handling - Validation Stock', () => {
       orderItems,
       mockProducts,
       mockIngredients,
+      mockUser,
       { ...DEFAULT_ERROR_CONFIG, stockNegativePolicy: StockNegativePolicy.BLOCK }
     );
 
