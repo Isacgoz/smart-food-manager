@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Créer Compte Test - Smart Food Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .info-box h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        .info-box p {
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+        .credentials {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .credentials code {
+            background: #fff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #d63384;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success.show {
+            display: block;
+        }
+        .success h3 {
+            color: #155724;
+            margin-bottom: 10px;
+        }
+        .success ul {
+            margin-left: 20px;
+            color: #155724;
+        }
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .warning p {
+            color: #856404;
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍔 Smart Food Manager</h1>
+        <p class="subtitle">Création de compte test avec données complètes</p>
+
+        <div class="info-box">
+            <h3>📦 Ce qui sera créé:</h3>
+            <p>✅ Compte admin avec PIN 1234</p>
+            <p>✅ 12 ingrédients (pains, viandes, fromages, légumes, sauces)</p>
+            <p>✅ 4 produits avec recettes (Burgers, Paninis)</p>
+            <p>✅ 5 tables configurées</p>
+            <p>✅ Données prêtes pour tests</p>
+        </div>
+
+        <div class="credentials">
+            <p><strong>📧 Email:</strong> <code>test@smartfood.com</code></p>
+            <p><strong>🔑 Mot de passe:</strong> <code>test1234</code></p>
+            <p><strong>📍 PIN Admin:</strong> <code>1234</code></p>
+        </div>
+
+        <div class="warning">
+            <p><strong>⚠️ Important:</strong></p>
+            <p>Ce bouton va créer le compte dans le <strong>localStorage</strong> de votre navigateur.</p>
+            <p>Assurez-vous d'être sur la page de Smart Food Manager avant de cliquer.</p>
+        </div>
+
+        <button onclick="createTestAccount()">
+            🚀 Créer le Compte Test
+        </button>
+
+        <div class="success" id="successMessage">
+            <h3>✅ Compte créé avec succès!</h3>
+            <ul>
+                <li>Email: test@smartfood.com</li>
+                <li>Mot de passe: test1234</li>
+                <li>Rechargez la page (F5) et connectez-vous!</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function createTestAccount() {
+            try {
+                // Compte test complet
+                const account = {
+                    email: "test@smartfood.com",
+                    password: "test1234",
+                    profile: {
+                        id: "dGVzdEBzbWFydGZvb2QuY29t",
+                        name: "Restaurant Test - La Bonne Bouffe",
+                        ownerEmail: "test@smartfood.com",
+                        plan: "BUSINESS",
+                        createdAt: new Date().toISOString(),
+                        stockPolicy: "WARN"
+                    }
+                };
+
+                // État initial avec données
+                const state = {
+                    users: [
+                        {
+                            id: "1",
+                            name: "Admin Test",
+                            pin: "1234",
+                            pinHash: "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
+                            role: "OWNER",
+                            email: "test@smartfood.com"
+                        },
+                        {
+                            id: "2",
+                            name: "Serveur 1",
+                            pin: "2222",
+                            pinHash: "ed968e840d10d2d313a870bc131a4e2c311d7ad09bdf32b3418c8ca9fb1d89e9",
+                            role: "SERVER",
+                            email: "serveur1@smartfood.com"
+                        }
+                    ],
+                    ingredients: [
+                        { id: "ing-1", name: "Pain burger", category: "Pains", unit: "piece", stock: 100, minStock: 20, avgPrice: 0.35 },
+                        { id: "ing-2", name: "Pain panini", category: "Pains", unit: "piece", stock: 80, minStock: 15, avgPrice: 0.40 },
+                        { id: "ing-3", name: "Steak haché", category: "Viandes", unit: "kg", stock: 15, minStock: 5, avgPrice: 12.50 },
+                        { id: "ing-4", name: "Poulet pané", category: "Viandes", unit: "kg", stock: 10, minStock: 3, avgPrice: 8.90 },
+                        { id: "ing-5", name: "Cheddar", category: "Fromages", unit: "kg", stock: 5, minStock: 2, avgPrice: 15.80 },
+                        { id: "ing-6", name: "Mozzarella", category: "Fromages", unit: "kg", stock: 4, minStock: 2, avgPrice: 14.50 },
+                        { id: "ing-7", name: "Chèvre", category: "Fromages", unit: "kg", stock: 3, minStock: 1, avgPrice: 18.00 },
+                        { id: "ing-8", name: "Tomate", category: "Légumes", unit: "kg", stock: 8, minStock: 3, avgPrice: 3.50 },
+                        { id: "ing-9", name: "Salade", category: "Légumes", unit: "kg", stock: 5, minStock: 2, avgPrice: 2.80 },
+                        { id: "ing-10", name: "Oignon", category: "Légumes", unit: "kg", stock: 6, minStock: 2, avgPrice: 2.20 },
+                        { id: "ing-11", name: "Sauce poivre", category: "Sauces", unit: "L", stock: 3, minStock: 1, avgPrice: 12.00 },
+                        { id: "ing-12", name: "Pesto", category: "Sauces", unit: "L", stock: 2, minStock: 1, avgPrice: 15.00 }
+                    ],
+                    products: [
+                        {
+                            id: "prod-1",
+                            name: "Burger Toasty",
+                            category: "Burgers",
+                            price: 12.00,
+                            tva: 10,
+                            description: "Steak grillé, cheddar, sauce poivre",
+                            recipe: [
+                                { ingredientId: "ing-1", quantity: 1 },
+                                { ingredientId: "ing-3", quantity: 0.150 },
+                                { ingredientId: "ing-5", quantity: 0.030 },
+                                { ingredientId: "ing-8", quantity: 0.050 },
+                                { ingredientId: "ing-11", quantity: 0.020 }
+                            ],
+                            available: true
+                        },
+                        {
+                            id: "prod-2",
+                            name: "Panini Italien",
+                            category: "Paninis",
+                            price: 8.50,
+                            tva: 10,
+                            description: "Tomate, pesto, mozzarella",
+                            recipe: [
+                                { ingredientId: "ing-2", quantity: 1 },
+                                { ingredientId: "ing-8", quantity: 0.080 },
+                                { ingredientId: "ing-6", quantity: 0.060 },
+                                { ingredientId: "ing-12", quantity: 0.015 }
+                            ],
+                            available: true
+                        }
+                    ],
+                    tables: [
+                        { id: "table-1", name: "Table 1", capacity: 4, location: "Salle", status: "FREE" },
+                        { id: "table-2", name: "Table 2", capacity: 4, location: "Salle", status: "FREE" },
+                        { id: "table-3", name: "Terrasse 1", capacity: 6, location: "Terrasse", status: "FREE" }
+                    ],
+                    partners: [
+                        {
+                            id: "partner-1",
+                            name: "Boulangerie Dupont",
+                            type: "SUPPLIER",
+                            email: "contact@boulangerie-dupont.fr",
+                            phone: "0102030405"
+                        }
+                    ],
+                    orders: [],
+                    supplierOrders: [],
+                    movements: [],
+                    cashDeclarations: [],
+                    expenses: [
+                        {
+                            id: "exp-1",
+                            category: "RENT",
+                            amount: 1500,
+                            description: "Loyer mensuel",
+                            date: new Date().toISOString(),
+                            createdAt: new Date().toISOString()
+                        }
+                    ],
+                    _lastUpdatedAt: Date.now()
+                };
+
+                // Sauvegarder compte SaaS
+                const saasDB = JSON.parse(localStorage.getItem('SMART_FOOD_SAAS_MASTER_DB') || '[]');
+                const existing = saasDB.findIndex(u => u.email === account.email);
+                if (existing >= 0) {
+                    saasDB[existing] = account;
+                } else {
+                    saasDB.push(account);
+                }
+                localStorage.setItem('SMART_FOOD_SAAS_MASTER_DB', JSON.stringify(saasDB));
+
+                // Sauvegarder état restaurant
+                const storageKey = 'smart_food_db_' + account.profile.id;
+                localStorage.setItem(storageKey, JSON.stringify(state));
+                localStorage.setItem('restaurant_profile', JSON.stringify(account.profile));
+
+                // Afficher message succès
+                document.getElementById('successMessage').classList.add('show');
+
+                console.log('✅ Compte test créé avec succès!');
+                console.log('Email: test@smartfood.com');
+                console.log('Mot de passe: test1234');
+
+                // Auto-reload après 3 secondes
+                setTimeout(() => {
+                    if (confirm('Recharger la page maintenant pour vous connecter?')) {
+                        location.reload();
+                    }
+                }, 2000);
+
+            } catch (error) {
+                alert('Erreur: ' + error.message + '\n\nOuvrez cette page depuis l\'application Smart Food Manager');
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>
