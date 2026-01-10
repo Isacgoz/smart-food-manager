@@ -10,6 +10,16 @@
 
 import type { User, Ingredient, Order } from '../types';
 
+/**
+ * Classe d'erreur business
+ */
+export class BusinessError extends Error {
+  constructor(message: string, public context?: Record<string, any>) {
+    super(message);
+    this.name = 'BusinessError';
+  }
+}
+
 // Types pour éviter dépendance Sentry en dev
 interface SentryConfig {
   dsn?: string;

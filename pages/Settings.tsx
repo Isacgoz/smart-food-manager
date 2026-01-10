@@ -7,10 +7,10 @@ import React, { useState } from 'react';
 import { Settings as SettingsIcon, Save, AlertTriangle, Shield, Bell } from 'lucide-react';
 import { StockPolicy } from '../shared/types';
 import { getStockPolicyDescription, getStockPolicyIcon } from '../services/stock-policy';
-import { useStore } from '../shared/hooks/useStore';
+import { useStore } from '../store';
 
 const Settings: React.FC = () => {
-  const { restaurant, updateRestaurant } = useStore();
+  const { restaurant } = useStore();
   const [stockPolicy, setStockPolicy] = useState<StockPolicy>(
     (restaurant.stockPolicy as StockPolicy) || 'WARN'
   );
@@ -22,9 +22,12 @@ const Settings: React.FC = () => {
     setSaveMessage(null);
 
     try {
-      await updateRestaurant({ stockPolicy });
+      // Save to localStorage
+      const updatedRestaurant = { ...restaurant, stockPolicy };
+      localStorage.setItem('restaurant_profile', JSON.stringify(updatedRestaurant));
+
       setSaveMessage({ type: 'success', text: 'Paramètres enregistrés avec succès' });
-      
+
       setTimeout(() => setSaveMessage(null), 3000);
     } catch (error) {
       console.error('Error saving settings:', error);
