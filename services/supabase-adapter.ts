@@ -59,7 +59,8 @@ export const getIngredients = async (companyId: string): Promise<Ingredient[]> =
 
   try {
     // Set company context for RLS
-    await supabase.rpc('set_config', {
+    await supabase.rpc('61
+      ', {
       setting: 'app.current_company_id',
       value: companyId
     });
