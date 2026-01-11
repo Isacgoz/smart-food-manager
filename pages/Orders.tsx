@@ -1,11 +1,49 @@
 
 import React, { useState } from 'react';
 import { useStore } from '../store';
-import { Clock, Search, FileText, Printer, CreditCard, Banknote, CheckCircle, Utensils, AlertCircle, ShoppingBag, CookingPot } from 'lucide-react';
+import { Clock, Search, FileText, Printer, CreditCard, Banknote, CheckCircle, Utensils, AlertCircle, ShoppingBag, CookingPot, XCircle } from 'lucide-react';
 import { Order, KitchenStatus } from '../types';
+import { cancelOrder, canCancelOrder } from '../services/order-cancellation';
+import { toast } from 'react-hot-toast';
 
 const Orders: React.FC = () => {
-    const { orders, tables, payOrder, users, products } = useStore();
+    const { orders, tables, payOrder, users, products, data, updateData } = useStore();
+    const [showCancelDialog, setShowCancelDialog] = useState(false);
+    const [cancelReason, setCancelReason] = useState<'CUSTOMER_REQUEST' | 'KITCHEN_ERROR' | 'PAYMENT_ISSUE' | 'DUPLICATE' | 'OTHER'>('CUSTOMER_REQUEST');
+    
+    const handleCancelOrder = async () => {
+        if (!selectedOrder) return;
+        
+        try {
+            const result = await cancelOrder(selectedOrder, data.ingredients, cancelReason);
+            
+            // Update ingredients with restocked quantities
+            const updatedIngredients = data.ingredients.map(ing => {
+                const restocked = result.restockedIngredients.find(r => r.ingredientId === ing.id);
+                if (restocked) {
+                    return { ...ing, quantity: ing.quantity + restocked.quantity };
+                }
+                return ing;
+            });
+            
+            // Update order status to cancelled
+            const updatedOrders = orders.map(o => 
+                o.id === selectedOrder.id ? { ...o, status: 'CANCELLED' as any, cancelledAt: new Date().toISOString(), cancelReason } : o
+            );
+            
+            updateData({ 
+                ...data, 
+                ingredients: updatedIngredients,
+                orders: updatedOrders 
+            });
+            
+            toast.success(`Commande #${selectedOrder.number} annulée. ${result.restockedIngredients.length} ingrédients restockés.`);
+            setShowCancelDialog(false);
+            setSelectedOrder(null);
+        } catch (error: any) {
+            toast.error(error.message || 'Erreur lors de l\'annulation');
+        }
+    };
     const [activeTab, setActiveTab] = useState<'PENDING' | 'COMPLETED'>('PENDING');
     const [filter, setFilter] = useState('');
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -151,10 +189,20 @@ const Orders: React.FC = () => {
                             </div>
 
                             {activeTab === 'PENDING' ? (
-                                <div className="grid grid-cols-2 gap-4">
-                                    <button onClick={() => payOrder(selectedOrder.id, 'CASH')} className="bg-emerald-600 text-white py-6 rounded-[24px] font-black text-xl shadow-2xl shadow-emerald-100 active:scale-95 flex items-center justify-center gap-3 transition-all uppercase tracking-tighter"><Banknote size={24}/> Espèces</button>
-                                    <button onClick={() => payOrder(selectedOrder.id, 'CARD')} className="bg-blue-600 text-white py-6 rounded-[24px] font-black text-xl shadow-2xl shadow-blue-100 active:scale-95 flex items-center justify-center gap-3 transition-all uppercase tracking-tighter"><CreditCard size={24}/> Carte Bancaire</button>
-                                </div>
+                                <>
+                                    <div className="grid grid-cols-2 gap-4 mb-4">
+                                        <button onClick={() => payOrder(selectedOrder.id, 'CASH')} className="bg-emerald-600 text-white py-6 rounded-[24px] font-black text-xl shadow-2xl shadow-emerald-100 active:scale-95 flex items-center justify-center gap-3 transition-all uppercase tracking-tighter"><Banknote size={24}/> Espèces</button>
+                                        <button onClick={() => payOrder(selectedOrder.id, 'CARD')} className="bg-blue-600 text-white py-6 rounded-[24px] font-black text-xl shadow-2xl shadow-blue-100 active:scale-95 flex items-center justify-center gap-3 transition-all uppercase tracking-tighter"><CreditCard size={24}/> Carte Bancaire</button>
+                                    </div>
+                                    {canCancelOrder(selectedOrder) && (
+                                        <button 
+                                            onClick={() => setShowCancelDialog(true)} 
+                                            className="w-full bg-red-600 text-white py-4 rounded-[24px] font-black text-sm shadow-xl active:scale-95 flex items-center justify-center gap-2 transition-all uppercase tracking-tighter hover:bg-red-700"
+                                        >
+                                            <XCircle size={20}/> Annuler la commande
+                                        </button>
+                                    )}
+                                </>
                             ) : (
                                 <button onClick={() => window.print()} className="w-full bg-slate-950 text-white py-6 rounded-[24px] font-black text-xl shadow-2xl flex items-center justify-center gap-3 active:scale-95 transition-all uppercase tracking-tighter"><Printer size={24}/> Imprimer Reçu</button>
                             )}
@@ -164,6 +212,46 @@ const Orders: React.FC = () => {
                     <div className="flex-1 flex flex-col items-center justify-center opacity-20">
                         <ShoppingBag size={100} className="text-slate-900 mb-6" />
                         <h3 className="text-2xl font-black uppercase tracking-[0.3em]">Consulter une facture</h3>
+                    </div>
+                )}
+                
+                {/* Cancel Order Dialog */}
+                {showCancelDialog && selectedOrder && (
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
+                        <div className="bg-white rounded-[32px] p-8 max-w-md w-full mx-4 shadow-2xl">
+                            <h3 className="text-2xl font-black text-slate-950 mb-4 uppercase tracking-tight">Annuler la commande #{selectedOrder.number}</h3>
+                            <p className="text-slate-600 mb-6 font-bold">Cette action va annuler la commande et remettre les ingrédients en stock. Cette action ne peut pas être annulée.</p>
+                            
+                            <div className="mb-6">
+                                <label className="block text-sm font-black text-slate-700 mb-2 uppercase tracking-wider">Raison de l'annulation</label>
+                                <select 
+                                    value={cancelReason} 
+                                    onChange={(e) => setCancelReason(e.target.value as any)}
+                                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl font-bold focus:border-emerald-500 outline-none"
+                                >
+                                    <option value="CUSTOMER_REQUEST">Demande du client</option>
+                                    <option value="KITCHEN_ERROR">Erreur de cuisine</option>
+                                    <option value="PAYMENT_ISSUE">Problème de paiement</option>
+                                    <option value="DUPLICATE">Commande dupliquée</option>
+                                    <option value="OTHER">Autre</option>
+                                </select>
+                            </div>
+                            
+                            <div className="flex gap-3">
+                                <button 
+                                    onClick={() => setShowCancelDialog(false)}
+                                    className="flex-1 bg-slate-200 text-slate-700 py-3 rounded-xl font-black uppercase tracking-wider hover:bg-slate-300 transition-all"
+                                >
+                                    Annuler
+                                </button>
+                                <button 
+                                    onClick={handleCancelOrder}
+                                    className="flex-1 bg-red-600 text-white py-3 rounded-xl font-black uppercase tracking-wider hover:bg-red-700 transition-all flex items-center justify-center gap-2"
+                                >
+                                    <XCircle size={18}/> Confirmer
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 )}
             </div>

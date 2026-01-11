@@ -19,6 +19,8 @@ import Kitchen from './pages/Kitchen';
 import SaaSLogin from './pages/SaaSLogin';
 import Expenses from './pages/Expenses';
 import Tables from './pages/Tables';
+import Exports from './pages/Exports';
+import Settings from './pages/Settings';
 import { RestaurantProfile, Role } from './shared/types';
 import { hasFeature } from './services/subscription';
 import { Lock } from 'lucide-react';
@@ -30,8 +32,8 @@ import { scheduledBackup } from './shared/services/backup';
 
 // Permissions par rôle (Sécurité)
 const ROLE_ROUTES: Record<Role, string[]> = {
-  OWNER: ['dashboard', 'kitchen', 'stocks', 'purchases', 'partners', 'menu', 'pos', 'users', 'orders', 'expenses'],
-  MANAGER: ['dashboard', 'kitchen', 'stocks', 'purchases', 'menu', 'pos', 'orders', 'expenses'],
+  OWNER: ['dashboard', 'kitchen', 'stocks', 'purchases', 'partners', 'menu', 'pos', 'users', 'orders', 'expenses', 'exports', 'settings'],
+  MANAGER: ['dashboard', 'kitchen', 'stocks', 'purchases', 'menu', 'pos', 'orders', 'expenses', 'exports', 'settings'],
   SERVER: ['pos', 'kitchen', 'orders'],
   COOK: ['kitchen']
 };
@@ -140,6 +142,9 @@ const AppContent: React.FC = () => {
         return <ProtectedRoute feature="hasERP"><Partners /></ProtectedRoute>;
       case 'expenses':
         return <ProtectedRoute feature="hasERP"><Expenses /></ProtectedRoute>;
+      case 'exports':
+        return <ProtectedRoute feature="hasERP"><Exports /></ProtectedRoute>;
+      case 'settings': return <Settings />;
       case 'menu': return <Menu />;
       case 'pos': return <POS />;
       case 'users': return <Users />;
