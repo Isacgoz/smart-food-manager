@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { supabase } from '../services/storage';
 
 /**
@@ -7,7 +6,6 @@ import { supabase } from '../services/storage';
  * URL: /auth/callback?token=xxx
  */
 export default function AuthCallback() {
-  const navigate = useNavigate();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [errorMessage, setErrorMessage] = useState<string>('');
 
@@ -30,7 +28,7 @@ export default function AuthCallback() {
           localStorage.setItem('supabase_session', JSON.stringify(session));
 
           // Rediriger vers dashboard après 2s
-          setTimeout(() => navigate('/dashboard'), 2000);
+          setTimeout(() => window.location.href = '/dashboard', 2000);
         } else {
           throw new Error('Aucune session trouvée');
         }
@@ -40,12 +38,12 @@ export default function AuthCallback() {
         setErrorMessage(error.message || 'Erreur lors de la confirmation');
 
         // Rediriger vers login après 3s
-        setTimeout(() => navigate('/login'), 3000);
+        setTimeout(() => window.location.href = '/login', 3000);
       }
     };
 
     handleCallback();
-  }, [navigate]);
+  }, []);
 
   if (status === 'loading') {
     return (
@@ -119,7 +117,7 @@ export default function AuthCallback() {
           Vous allez être redirigé vers la page de connexion...
         </p>
         <button
-          onClick={() => navigate('/login')}
+          onClick={() => window.location.href = '/login'}
           className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
         >
           Retour à la connexion
