@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../shared/services/storage';
+import { supabase } from '../services/storage';
 
 /**
  * Page de callback après confirmation email Supabase
