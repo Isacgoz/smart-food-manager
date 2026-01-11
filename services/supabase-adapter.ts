@@ -58,13 +58,6 @@ export const getIngredients = async (companyId: string): Promise<Ingredient[]> =
   if (!supabase) return [];
 
   try {
-    // Set company context for RLS
-    await supabase.rpc('61
-      ', {
-      setting: 'app.current_company_id',
-      value: companyId
-    });
-
     const { data, error } = await supabase
       .from('ingredients')
       .select('*')
