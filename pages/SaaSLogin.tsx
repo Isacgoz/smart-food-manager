@@ -156,7 +156,26 @@ const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
                 return;
             }
 
-            // Créer profil restaurant dans app_state
+            // ÉTAPE 1: Créer company d'abord (requis pour RLS)
+            const { data: companyData, error: companyError } = await supabase
+                .from('companies')
+                .insert({
+                    id: data.user.id, // Même UUID que user
+                    name: regName.trim(),
+                    owner_id: data.user.id,
+                    plan: regPlan,
+                    is_active: true
+                })
+                .select()
+                .single();
+
+            if (companyError) {
+                console.error('[REGISTER] Company creation error:', companyError);
+                setError('Erreur création restaurant: ' + companyError.message);
+                return;
+            }
+
+            // ÉTAPE 2: Créer profil restaurant dans app_state avec company_id
             const profile: RestaurantProfile = {
                 id: data.user.id,
                 name: regName.trim(),
@@ -190,6 +209,7 @@ const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
                 .from('app_state')
                 .upsert({
                     id: data.user.id,
+                    company_id: companyData.id, // Lien vers company créée
                     data: initialState
                 }, {
                     onConflict: 'id'

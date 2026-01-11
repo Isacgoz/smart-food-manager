@@ -46,12 +46,23 @@ RETURNING id, email, confirmation_token;
 
 -- Note: Copiez l'UUID et le confirmation_token retournés
 
--- 2. Créer l'état initial du restaurant dans app_state
+-- 2. Créer company d'abord (REQUIS pour RLS policies)
 -- REMPLACEZ 'USER_ID_ICI' par l'UUID retourné ci-dessus
+INSERT INTO companies (id, name, owner_id, plan, is_active)
+VALUES (
+  'USER_ID_ICI', -- REMPLACER par l'UUID de l'étape 1
+  'Restaurant Demo Production',
+  'USER_ID_ICI', -- owner_id = user_id
+  'BUSINESS',
+  true
+) ON CONFLICT (id) DO NOTHING;
+
+-- 3. Créer l'état initial du restaurant dans app_state
+-- REMPLACEZ 'USER_ID_ICI' par l'UUID retourné en étape 1
 INSERT INTO app_state (id, company_id, data, updated_at)
 VALUES (
   'USER_ID_ICI', -- REMPLACER par l'UUID de l'étape 1
-  '22222222-2222-2222-2222-222222222222', -- company_id unique pour ce restaurant
+  'USER_ID_ICI', -- company_id = même UUID (1 user = 1 company)
   '{
     "restaurant": {
       "id": "USER_ID_ICI",
