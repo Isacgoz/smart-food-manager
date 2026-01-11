@@ -32,7 +32,8 @@
       "Bash(tree:*)",
       "Bash(wc:*)",
       "Bash(du:*)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(xargs cat:*)"
     ]
   }
 }
