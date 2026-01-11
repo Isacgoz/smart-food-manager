@@ -21,6 +21,7 @@ import Expenses from './pages/Expenses';
 import Tables from './pages/Tables';
 import Exports from './pages/Exports';
 import Settings from './pages/Settings';
+import AuthCallback from './pages/AuthCallback';
 import { RestaurantProfile, Role } from './shared/types';
 import { hasFeature } from './services/subscription';
 import { Lock } from 'lucide-react';
@@ -59,7 +60,7 @@ const ProtectedRoute: React.FC<{ feature: 'hasERP' | 'hasStats', children: React
 };
 
 const AppContent: React.FC = () => {
-  const { currentUser, logout, restaurant, data } = useStore();
+  const { currentUser, logout, restaurant } = useStore();
   const [currentView, setCurrentView] = useState('pos');
   const isMobile = useMobile();
 
@@ -79,7 +80,7 @@ const AppContent: React.FC = () => {
       const now = new Date();
       const next3AM = new Date();
       next3AM.setHours(3, 0, 0, 0);
-      
+
       // Si déjà passé 3h aujourd'hui, programmer pour demain
       if (now > next3AM) {
         next3AM.setDate(next3AM.getDate() + 1);
@@ -89,8 +90,11 @@ const AppContent: React.FC = () => {
 
       const timeoutId = setTimeout(async () => {
         console.info('[BACKUP] Démarrage backup automatique quotidien');
+        // Charger données depuis localStorage pour backup
+        const storageKey = `smart_food_db_${restaurant.id}`;
+        const data = JSON.parse(localStorage.getItem(storageKey) || '{}');
         await scheduledBackup(restaurant.id, data);
-        
+
         // Reprogrammer pour le lendemain
         scheduleBackup();
       }, msUntil3AM);
@@ -100,7 +104,7 @@ const AppContent: React.FC = () => {
 
     const timeoutId = scheduleBackup();
     return () => clearTimeout(timeoutId);
-  }, [restaurant?.id, currentUser, data]);
+  }, [restaurant?.id, currentUser]);
 
   if (!currentUser) {
     return <Login />;
@@ -205,6 +209,11 @@ const App: React.FC = () => {
   };
 
   if (loading) return null;
+
+  // Gérer callback Supabase Auth (confirmation email)
+  if (window.location.pathname === '/auth/callback') {
+      return <AuthCallback />;
+  }
 
   if (!restaurantProfile) {
       return <SaaSLogin onLogin={handleSaaSLogin} />;
