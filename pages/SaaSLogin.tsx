@@ -156,7 +156,25 @@ const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
                 return;
             }
 
-            // Créer profil restaurant dans app_state
+            // ÉTAPE 1: Créer company d'abord (requis pour multi-tenant isolation)
+            const { error: companyError } = await supabase
+                .from('companies')
+                .upsert({
+                    id: data.user.id,
+                    name: regName.trim(),
+                    owner_id: data.user.id,
+                    plan: regPlan,
+                    is_active: true
+                }, {
+                    onConflict: 'id'
+                });
+
+            if (companyError) {
+                console.error('[REGISTER] Company creation error:', companyError);
+                // Continue anyway - table might not exist yet
+            }
+
+            // ÉTAPE 2: Créer profil restaurant
             const profile: RestaurantProfile = {
                 id: data.user.id,
                 name: regName.trim(),
@@ -186,10 +204,12 @@ const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
                 _lastUpdatedAt: Date.now()
             };
 
+            // ÉTAPE 3: Créer app_state avec company_id
             const { error: insertError } = await supabase
                 .from('app_state')
                 .upsert({
                     id: data.user.id,
+                    company_id: data.user.id,
                     data: initialState
                 }, {
                     onConflict: 'id'
