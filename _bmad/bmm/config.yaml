@@ -1,0 +1,16 @@
+# BMM Configuration for Smart Food Manager
+# Generated: 2026-01-23
+
+user_name: "Developer"
+communication_language: "French"
+document_output_language: "French"
+user_skill_level: "intermediate"
+
+# Project Info
+project_name: "Smart Food Manager"
+
+# Output folders
+output_folder: "docs/bmad"
+planning_artifacts: "docs/bmad/planning-artifacts"
+implementation_artifacts: "docs/bmad/implementation-artifacts"
+project_knowledge: "docs/bmad/project-knowledge"

@@ -2,38 +2,38 @@
 import { PlanType, SubscriptionPlan } from "../types";
 
 export const PLANS: Record<PlanType, SubscriptionPlan> = {
-    STARTER: {
-        id: 'STARTER',
-        name: 'Démarrage (Gratuit)',
-        price: 0,
+    SOLO: {
+        id: 'SOLO',
+        name: 'Solo',
+        price: 29,
         limits: {
-            users: 2,
-            products: 15,
-            tables: 5,
-            hasERP: false,
+            users: 1,
+            products: 50,
+            tables: 10,
+            hasERP: true,
             hasStats: false,
             supportPriority: 'LOW'
         }
     },
-    PRO: {
-        id: 'PRO',
-        name: 'Pro',
-        price: 29.99,
+    TEAM: {
+        id: 'TEAM',
+        name: 'Team',
+        price: 79,
         limits: {
             users: 5,
-            products: 100,
-            tables: 20,
-            hasERP: true, // Stocks limités
+            products: 200,
+            tables: 30,
+            hasERP: true,
             hasStats: true,
             supportPriority: 'MEDIUM'
         }
     },
     BUSINESS: {
         id: 'BUSINESS',
-        name: 'Business Illimité',
-        price: 79.99,
+        name: 'Business',
+        price: 149,
         limits: {
-            users: -1, // Unlimited
+            users: -1,
             products: -1,
             tables: -1,
             hasERP: true,

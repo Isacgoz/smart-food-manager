@@ -3,15 +3,15 @@ import React from 'react';
 import { useStore } from '../store';
 import {
   LayoutDashboard, ShoppingCart, ChefHat,
-  UtensilsCrossed, LogOut, Users, FileText, ArrowLeftCircle, AlertCircle, X, Package, CreditCard, HeartHandshake, Database, CookingPot, DollarSign, LayoutGrid, FileSpreadsheet, Settings as SettingsIcon
+  UtensilsCrossed, LogOut, Users, FileText, ArrowLeftCircle, AlertCircle, X, Package, CreditCard, HeartHandshake, CookingPot, DollarSign, LayoutGrid, FileSpreadsheet, Settings as SettingsIcon
 } from 'lucide-react';
 import { hasFeature } from '../services/subscription';
 import { Role } from '../types';
 
 // Permissions strictes par rôle
 const ROLE_ROUTES: Record<Role, string[]> = {
-  OWNER: ['dashboard', 'kitchen', 'stocks', 'purchases', 'partners', 'menu', 'pos', 'users', 'orders', 'backup', 'expenses', 'tables', 'exports', 'settings'],
-  MANAGER: ['dashboard', 'kitchen', 'stocks', 'purchases', 'menu', 'pos', 'orders', 'backup', 'expenses', 'tables', 'exports', 'settings'],
+  OWNER: ['dashboard', 'kitchen', 'stocks', 'purchases', 'partners', 'menu', 'pos', 'users', 'orders', 'expenses', 'tables', 'exports', 'settings'],
+  MANAGER: ['dashboard', 'kitchen', 'stocks', 'purchases', 'menu', 'pos', 'orders', 'expenses', 'tables', 'exports', 'settings'],
   SERVER: ['pos', 'kitchen', 'orders', 'tables'],
   COOK: ['kitchen']
 };
@@ -42,7 +42,6 @@ const Layout: React.FC<LayoutProps> = ({ children, currentView, setView }) => {
     { id: 'partners', label: 'Partenaires & CRM', icon: HeartHandshake },
     { id: 'users', label: 'Équipe', icon: Users },
     { id: 'settings', label: 'Paramètres', icon: SettingsIcon },
-    { id: 'backup', label: 'Sauvegarde DB', icon: Database },
   ];
 
   // Filtrer selon rôle ET plan

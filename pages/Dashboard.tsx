@@ -3,7 +3,7 @@ import React, { useMemo, useState } from 'react';
 import { useStore } from '../store';
 import {
   Banknote, CreditCard, UserCheck, TrendingUp, AlertTriangle,
-  ShieldCheck, Calculator, CheckCircle2, History, Activity, PieChart
+  ShieldCheck, Calculator, CheckCircle2, History, Activity, PieChart, Receipt
 } from 'lucide-react';
 import { calculateEBE, calculateEmployeeRevenue, calculatePaymentTypeBreakdown } from '../shared/services/expenses';
 
@@ -64,8 +64,17 @@ const Dashboard: React.FC = () => {
       collectors[id].total += o.total;
     });
 
+    // Calcul TVA collectée (CA TTC - CA HT)
+    // Taux moyen restauration: 10% sur place, 5.5% emporter
+    // Simplification: on utilise 10% comme taux principal
+    const revenueTTC = cashTotal + cardTotal;
+    const revenueHT = revenueTTC / 1.10; // CA HT (taux 10%)
+    const tvaCollectee = revenueTTC - revenueHT;
+
     return {
-      revenue: cashTotal + cardTotal,
+      revenue: revenueTTC,
+      revenueHT,
+      tvaCollectee,
       cashTotal,
       cardTotal,
       theoreticalCash,
@@ -136,6 +145,34 @@ const Dashboard: React.FC = () => {
           <div className="text-sm font-bold opacity-80">
             {stats.ebeData.expenses.fixed.toFixed(0)}€ fixes + {stats.ebeData.expenses.variable.toFixed(0)}€ var.
           </div>
+        </div>
+      </div>
+
+      {/* SECTION TVA */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="bg-white p-8 rounded-[32px] border-2 border-slate-100 shadow-sm">
+          <div className="flex items-center gap-3 mb-4">
+            <Receipt size={24} className="text-slate-400"/>
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">CA TTC</span>
+          </div>
+          <div className="text-3xl font-black tracking-tighter text-slate-900">{stats.revenue.toFixed(2)} €</div>
+        </div>
+
+        <div className="bg-white p-8 rounded-[32px] border-2 border-slate-100 shadow-sm">
+          <div className="flex items-center gap-3 mb-4">
+            <Banknote size={24} className="text-emerald-500"/>
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">CA HT</span>
+          </div>
+          <div className="text-3xl font-black tracking-tighter text-emerald-600">{stats.revenueHT.toFixed(2)} €</div>
+        </div>
+
+        <div className="bg-gradient-to-br from-red-500 to-red-600 p-8 rounded-[32px] text-white shadow-2xl shadow-red-900/20">
+          <div className="flex items-center gap-3 mb-4">
+            <Receipt size={24} className="opacity-80"/>
+            <span className="text-[10px] font-black opacity-70 uppercase tracking-widest">TVA à Reverser</span>
+          </div>
+          <div className="text-3xl font-black tracking-tighter mb-2">{stats.tvaCollectee.toFixed(2)} €</div>
+          <div className="text-sm font-bold opacity-80">Taux moyen 10%</div>
         </div>
       </div>
 

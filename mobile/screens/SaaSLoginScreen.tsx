@@ -29,7 +29,7 @@ export const SaaSLoginScreen = () => {
         id: mockId, // On essaie de deviner l'ID basé sur l'email pour la démo
         name: email.split('@')[0],
         ownerEmail: email,
-        plan: 'PRO',
+        plan: 'SOLO',
         createdAt: new Date().toISOString()
     };
 

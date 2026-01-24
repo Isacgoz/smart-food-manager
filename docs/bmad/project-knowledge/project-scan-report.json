@@ -1,0 +1,88 @@
+{
+  "workflow_version": "1.2.0",
+  "timestamps": {
+    "started": "2026-01-23T22:45:00Z",
+    "completed": "2026-01-23T23:15:00Z",
+    "last_updated": "2026-01-23T23:15:00Z"
+  },
+  "mode": "initial_scan",
+  "scan_level": "exhaustive",
+  "project_root": "/Users/isacelgozmir/Downloads/smart-food-manager (6)",
+  "output_folder": "docs/bmad/project-knowledge",
+  "completed_steps": [
+    "step_1_detect_structure",
+    "step_2_discover_documentation",
+    "step_3_analyze_tech_stack",
+    "step_4_scan_api_data_state_ui",
+    "step_5_source_tree_analysis",
+    "step_6_development_info",
+    "step_7_generate_overview",
+    "step_8_generate_architecture",
+    "step_9_generate_data_models",
+    "step_10_generate_action_plan",
+    "step_11_generate_index"
+  ],
+  "current_step": "completed",
+  "findings": {
+    "repository_type": "monorepo",
+    "project_types": ["web", "mobile", "api"],
+    "tech_stack": {
+      "frontend": {
+        "framework": "React 19.2.3",
+        "build_tool": "Vite 6.2.0",
+        "language": "TypeScript",
+        "styling": "Tailwind CSS 4.1.18",
+        "state": "Context API",
+        "icons": "Lucide React",
+        "charts": "Recharts",
+        "notifications": "React Hot Toast"
+      },
+      "backend": {
+        "database": "PostgreSQL (Supabase)",
+        "auth": "Supabase Auth",
+        "realtime": "Supabase Realtime",
+        "storage": "Supabase Storage"
+      },
+      "mobile": {
+        "framework": "React Native",
+        "wrapper": "Capacitor 8.0.0"
+      },
+      "testing": {
+        "framework": "Vitest 4.0.16",
+        "library": "React Testing Library"
+      },
+      "monitoring": {
+        "error_tracking": "Sentry",
+        "performance": "Web Vitals"
+      }
+    },
+    "pages_count": 18,
+    "services_count": 32,
+    "tests_count": "167+",
+    "test_files_count": 12,
+    "documentation_files": 74,
+    "production_readiness": "82%",
+    "critical_gaps": [
+      "NF525 certification incomplete (67%)",
+      "Automatic backups not configured",
+      "E2E tests missing",
+      "Mobile sync partial"
+    ],
+    "bugs_found": [
+      "BUG-001: Route 'tables' missing in App.tsx",
+      "BUG-002: Brutal reload after import in Users.tsx",
+      "BUG-003: TVA hardcoded 10% in Dashboard.tsx",
+      "BUG-004: order.type undefined in invoicing.ts"
+    ]
+  },
+  "outputs_generated": [
+    "project-scan-report.json",
+    "project-overview.md",
+    "architecture.md",
+    "data-models.md",
+    "action-plan.md",
+    "index.md"
+  ],
+  "resume_instructions": "Scan completed. See action-plan.md for next steps.",
+  "project_types": ["web", "mobile"]
+}

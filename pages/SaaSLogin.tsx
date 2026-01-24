@@ -25,7 +25,7 @@ const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
     const [regName, setRegName] = useState('');
     const [regEmail, setRegEmail] = useState('');
     const [regPassword, setRegPassword] = useState('');
-    const [regPlan, setRegPlan] = useState<PlanType>('PRO');
+    const [regPlan, setRegPlan] = useState<PlanType>('SOLO');
 
     useEffect(() => {
         const db = JSON.parse(localStorage.getItem(SAAS_DB_KEY) || '[]');
@@ -74,19 +74,63 @@ const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
                 .eq('id', data.user.id)
                 .single();
 
+            // PGRST116 = No rows found (normal pour nouveau user)
             if (profileError && profileError.code !== 'PGRST116') {
-                setError('Erreur chargement profil.');
-                return;
+                console.error('[LOGIN] Profile load error:', profileError);
             }
 
-            // Créer ou utiliser profil existant
+            // Créer profil par défaut si non existant
             const profile: RestaurantProfile = profileData?.data?.restaurant || {
                 id: data.user.id,
-                name: data.user.email?.split('@')[0] || 'Mon Restaurant',
+                name: data.user.user_metadata?.restaurant_name || data.user.email?.split('@')[0] || 'Mon Restaurant',
                 ownerEmail: data.user.email || email,
-                plan: 'PRO',
+                plan: data.user.user_metadata?.plan || 'SOLO',
                 createdAt: new Date().toISOString()
             };
+
+            // Si pas de données existantes, créer l'état initial
+            if (!profileData?.data) {
+                console.log('[LOGIN] Creating initial state for user:', data.user.id);
+
+                // Nettoyer puis créer company
+                await supabase.from('companies').delete().eq('id', data.user.id);
+                await supabase.from('companies').insert({
+                    id: data.user.id,
+                    name: profile.name,
+                    owner_id: data.user.id,
+                    plan: profile.plan,
+                    is_active: true
+                });
+
+                // Créer état initial
+                const initialState = {
+                    restaurant: profile,
+                    users: [{
+                        id: '1',
+                        name: 'Admin',
+                        pin: '1234',
+                        pinHash: '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4',
+                        role: 'OWNER'
+                    }],
+                    products: [],
+                    tables: [],
+                    orders: [],
+                    ingredients: [],
+                    movements: [],
+                    expenses: [],
+                    cashDeclarations: [],
+                    partners: [],
+                    supplierOrders: [],
+                    _lastUpdatedAt: Date.now()
+                };
+
+                await supabase.from('app_state').delete().eq('id', data.user.id);
+                await supabase.from('app_state').insert({
+                    id: data.user.id,
+                    company_id: data.user.id,
+                    data: initialState
+                });
+            }
 
             onLogin(profile);
         } catch (err: any) {
@@ -156,26 +200,31 @@ const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
                 return;
             }
 
-            // ÉTAPE 1: Créer company d'abord (requis pour RLS)
-            const { data: companyData, error: companyError } = await supabase
+            // ÉTAPE 1: Nettoyer puis créer company (évite conflit upsert/RLS)
+            await supabase.from('companies').delete().eq('id', data.user.id);
+
+            const companyPayload = {
+                id: data.user.id,
+                name: regName.trim(),
+                owner_id: data.user.id,
+                plan: 'SOLO' as const,  // Force valeur explicite
+                is_active: true
+            };
+            console.log('[REGISTER] Company payload:', JSON.stringify(companyPayload));
+
+            const { error: companyError } = await supabase
                 .from('companies')
-                .insert({
-                    id: data.user.id, // Même UUID que user
-                    name: regName.trim(),
-                    owner_id: data.user.id,
-                    plan: regPlan,
-                    is_active: true
-                })
-                .select()
-                .single();
+                .insert(companyPayload);
 
             if (companyError) {
                 console.error('[REGISTER] Company creation error:', companyError);
+                console.error('[REGISTER] Payload was:', JSON.stringify(companyPayload));
                 setError('Erreur création restaurant: ' + companyError.message);
                 return;
             }
+            console.log('[REGISTER] Company created successfully');
 
-            // ÉTAPE 2: Créer profil restaurant dans app_state avec company_id
+            // ÉTAPE 2: Créer profil restaurant
             const profile: RestaurantProfile = {
                 id: data.user.id,
                 name: regName.trim(),
@@ -205,14 +254,14 @@ const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
                 _lastUpdatedAt: Date.now()
             };
 
+            // ÉTAPE 3: Nettoyer puis créer app_state
+            await supabase.from('app_state').delete().eq('id', data.user.id);
             const { error: insertError } = await supabase
                 .from('app_state')
-                .upsert({
+                .insert({
                     id: data.user.id,
-                    company_id: companyData.id, // Lien vers company créée
+                    company_id: data.user.id,
                     data: initialState
-                }, {
-                    onConflict: 'id'
                 });
 
             if (insertError) {

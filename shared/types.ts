@@ -1,9 +1,10 @@
 
 export type Role = 'OWNER' | 'MANAGER' | 'SERVER' | 'COOK';
 export type Unit = 'kg' | 'g' | 'L' | 'cl' | 'ml' | 'piece';
-export type PlanType = 'STARTER' | 'PRO' | 'BUSINESS';
+export type PlanType = 'SOLO' | 'TEAM' | 'BUSINESS';
 export type KitchenStatus = 'QUEUED' | 'PREPARING' | 'READY' | 'SERVED';
 export type StockPolicy = 'BLOCK' | 'WARN' | 'SILENT';
+export type OrderType = 'DINE_IN' | 'TAKEAWAY';
 
 export interface User {
   id: string;
@@ -27,6 +28,7 @@ export interface Order {
   paidByUserId?: string; // ENCAISSEMENT (Crucial pour l'audit)
   version?: number; // Optimistic locking
   updatedAt?: string;
+  type?: OrderType; // DINE_IN (sur place) ou TAKEAWAY (emporter) - impact TVA
 }
 
 export interface RecipeItem {
@@ -61,13 +63,21 @@ export interface OrderItem {
   note?: string; 
 }
 
-export interface RestaurantProfile { 
-  id: string; 
-  name: string; 
-  ownerEmail: string; 
-  plan: PlanType; 
+export interface RestaurantProfile {
+  id: string;
+  name: string;
+  ownerEmail: string;
+  plan: PlanType;
   createdAt: string;
   stockPolicy?: StockPolicy;
+  // Infos légales NF525
+  legalName?: string;
+  siren?: string;
+  siret?: string;
+  vatNumber?: string;
+  address?: string;
+  postalCode?: string;
+  city?: string;
 }
 
 export interface CashDeclaration { 

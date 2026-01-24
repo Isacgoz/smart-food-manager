@@ -9,9 +9,17 @@ export default function AuthCallback() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [errorMessage, setErrorMessage] = useState<string>('');
 
+  const navigate = (path: string) => {
+    window.location.href = path === '/dashboard' ? '/' : '/';
+  };
+
   useEffect(() => {
     const handleCallback = async () => {
       try {
+        if (!supabase) {
+          throw new Error('Supabase non configuré');
+        }
+
         // Supabase gère automatiquement le token dans l'URL
         const { data: { session }, error } = await supabase.auth.getSession();
 
@@ -28,7 +36,7 @@ export default function AuthCallback() {
           localStorage.setItem('supabase_session', JSON.stringify(session));
 
           // Rediriger vers dashboard après 2s
-          setTimeout(() => window.location.href = '/dashboard', 2000);
+          setTimeout(() => navigate('/dashboard'), 2000);
         } else {
           throw new Error('Aucune session trouvée');
         }
@@ -38,7 +46,7 @@ export default function AuthCallback() {
         setErrorMessage(error.message || 'Erreur lors de la confirmation');
 
         // Rediriger vers login après 3s
-        setTimeout(() => window.location.href = '/login', 3000);
+        setTimeout(() => navigate('/login'), 3000);
       }
     };
 
@@ -117,7 +125,7 @@ export default function AuthCallback() {
           Vous allez être redirigé vers la page de connexion...
         </p>
         <button
-          onClick={() => window.location.href = '/login'}
+          onClick={() => navigate('/login')}
           className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
         >
           Retour à la connexion
@@ -132,6 +140,10 @@ export default function AuthCallback() {
  */
 async function loadRestaurantProfile(userId: string) {
   try {
+    if (!supabase) {
+      throw new Error('Supabase non configuré');
+    }
+
     const { data, error } = await supabase
       .from('app_state')
       .select('data')
