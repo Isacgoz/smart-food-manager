@@ -7,6 +7,7 @@ import {
 import { loadState, saveState, supabase } from './services/storage';
 import { hashUserPIN } from './shared/services/auth';
 import { useToast } from './shared/hooks/useToast';
+import { archiveInvoice, getLastInvoiceHash, logPriceChange, RestaurantLegalInfo } from './services/nf525';
 
 const generateId = () => Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
 
@@ -154,19 +155,64 @@ export const AppProvider: React.FC<{ children: React.ReactNode, restaurant: Rest
     setTimeout(() => setNotifications(prev => prev.filter(n => n.id !== id)), 5000);
   }, [toast]);
 
-  const payOrder = useCallback((orderId: string, method: 'CASH' | 'CARD') => {
+  const payOrder = useCallback(async (orderId: string, method: 'CASH' | 'CARD') => {
+    const order = data.orders.find(o => o.id === orderId);
+    if (!order) return;
+
+    // Archivage NF525 si infos légales disponibles
+    if (restaurant.siret && restaurant.siren) {
+      const legalInfo: RestaurantLegalInfo = {
+        name: restaurant.name,
+        legal_name: restaurant.legalName,
+        siret: restaurant.siret,
+        siren: restaurant.siren,
+        vat_number: restaurant.vatNumber || `FR${restaurant.siren}`,
+        address: restaurant.address || '',
+        postal_code: restaurant.postalCode,
+        city: restaurant.city
+      };
+
+      const previousHash = await getLastInvoiceHash(restaurant.id);
+      const archived = await archiveInvoice(
+        restaurant.id,
+        { ...order, paymentMethod: method },
+        data.products,
+        legalInfo,
+        previousHash || undefined
+      );
+
+      if (archived) {
+        setData(prev => ({
+          ...prev,
+          _lastUpdatedAt: Date.now(),
+          orders: prev.orders.map(o => o.id === orderId ? {
+            ...o,
+            status: 'COMPLETED',
+            paymentMethod: method,
+            paidByUserId: currentUser?.id,
+            invoiceNumber: archived.invoice_number,
+            paidAt: new Date().toISOString()
+          } : o)
+        }));
+        notify(`Facture ${archived.invoice_number} archivée`, "success");
+        return;
+      }
+    }
+
+    // Fallback si archivage NF525 impossible
     setData(prev => ({
       ...prev,
       _lastUpdatedAt: Date.now(),
-      orders: prev.orders.map(o => o.id === orderId ? { 
-        ...o, 
-        status: 'COMPLETED', 
-        paymentMethod: method, 
-        paidByUserId: currentUser?.id // Trace qui a encaissé l'argent
+      orders: prev.orders.map(o => o.id === orderId ? {
+        ...o,
+        status: 'COMPLETED',
+        paymentMethod: method,
+        paidByUserId: currentUser?.id,
+        paidAt: new Date().toISOString()
       } : o)
     }));
     notify("Paiement validé", "success");
-  }, [currentUser, notify]);
+  }, [currentUser, notify, data.orders, data.products, restaurant]);
 
   const createOrder = useCallback(async (items: OrderItem[], tableId?: string, customerId?: string) => {
     // VALIDATION: Vérifier stock disponible AVANT création commande
@@ -312,10 +358,40 @@ export const AppProvider: React.FC<{ children: React.ReactNode, restaurant: Rest
     },
     deleteUser: (id: string) => setData(p => ({...p, _lastUpdatedAt: Date.now(), users: p.users.filter(u => u.id !== id)})),
     addProduct: (prod: Product) => setData(p => ({...p, _lastUpdatedAt: Date.now(), products: [...p.products, { ...prod, id: generateId() }]})),
-    updateProduct: (prod: Product) => setData(p => ({...p, _lastUpdatedAt: Date.now(), products: p.products.map(pr => pr.id === prod.id ? prod : pr)})),
+    updateProduct: async (prod: Product) => {
+      const oldProduct = data.products.find(p => p.id === prod.id);
+      if (oldProduct && oldProduct.price !== prod.price) {
+        // NF525: Log changement prix
+        await logPriceChange(
+          restaurant.id,
+          'PRODUCT',
+          prod.id,
+          prod.name,
+          oldProduct.price,
+          prod.price,
+          currentUser?.id
+        );
+      }
+      setData(p => ({...p, _lastUpdatedAt: Date.now(), products: p.products.map(pr => pr.id === prod.id ? prod : pr)}));
+    },
     deleteProduct: (id: string) => setData(p => ({...p, _lastUpdatedAt: Date.now(), products: p.products.filter(pr => pr.id !== id)})),
     addIngredient: (ing: any) => setData(p => ({...p, _lastUpdatedAt: Date.now(), ingredients: [...p.ingredients, { ...ing, id: generateId(), stock: 0, averageCost: 0 }]})),
-    updateIngredient: (id: string, ing: any) => setData(p => ({...p, _lastUpdatedAt: Date.now(), ingredients: p.ingredients.map(i => i.id === id ? {...i, ...ing} : i)})),
+    updateIngredient: async (id: string, ing: any) => {
+      const oldIngredient = data.ingredients.find(i => i.id === id);
+      if (oldIngredient && ing.averageCost !== undefined && oldIngredient.averageCost !== ing.averageCost) {
+        // NF525: Log changement coût
+        await logPriceChange(
+          restaurant.id,
+          'INGREDIENT',
+          id,
+          oldIngredient.name,
+          oldIngredient.averageCost,
+          ing.averageCost,
+          currentUser?.id
+        );
+      }
+      setData(p => ({...p, _lastUpdatedAt: Date.now(), ingredients: p.ingredients.map(i => i.id === id ? {...i, ...ing} : i)}));
+    },
     addTable: (t: any) => setData(p => ({...p, _lastUpdatedAt: Date.now(), tables: [...p.tables, { ...t, id: generateId() }]})),
     deleteTable: (id: string) => setData(p => ({...p, _lastUpdatedAt: Date.now(), tables: p.tables.filter(t => t.id !== id)})),
     addPartner: (part: any) => setData(p => ({...p, _lastUpdatedAt: Date.now(), partners: [...p.partners, { ...part, id: generateId() }]})),
