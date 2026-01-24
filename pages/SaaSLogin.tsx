@@ -202,21 +202,27 @@ const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
 
             // ÉTAPE 1: Nettoyer puis créer company (évite conflit upsert/RLS)
             await supabase.from('companies').delete().eq('id', data.user.id);
+
+            const companyPayload = {
+                id: data.user.id,
+                name: regName.trim(),
+                owner_id: data.user.id,
+                plan: 'SOLO' as const,  // Force valeur explicite
+                is_active: true
+            };
+            console.log('[REGISTER] Company payload:', JSON.stringify(companyPayload));
+
             const { error: companyError } = await supabase
                 .from('companies')
-                .insert({
-                    id: data.user.id,
-                    name: regName.trim(),
-                    owner_id: data.user.id,
-                    plan: regPlan,
-                    is_active: true
-                });
+                .insert(companyPayload);
 
             if (companyError) {
                 console.error('[REGISTER] Company creation error:', companyError);
+                console.error('[REGISTER] Payload was:', JSON.stringify(companyPayload));
                 setError('Erreur création restaurant: ' + companyError.message);
                 return;
             }
+            console.log('[REGISTER] Company created successfully');
 
             // ÉTAPE 2: Créer profil restaurant
             const profile: RestaurantProfile = {
