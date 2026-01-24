@@ -1,19 +1,25 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '../shared/services/storage';
+import { supabase } from '../services/storage';
 
 /**
  * Page de callback après confirmation email Supabase
  * URL: /auth/callback?token=xxx
  */
 export default function AuthCallback() {
-  const navigate = useNavigate();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [errorMessage, setErrorMessage] = useState<string>('');
+
+  const navigate = (path: string) => {
+    window.location.href = path === '/dashboard' ? '/' : '/';
+  };
 
   useEffect(() => {
     const handleCallback = async () => {
       try {
+        if (!supabase) {
+          throw new Error('Supabase non configuré');
+        }
+
         // Supabase gère automatiquement le token dans l'URL
         const { data: { session }, error } = await supabase.auth.getSession();
 
@@ -45,7 +51,7 @@ export default function AuthCallback() {
     };
 
     handleCallback();
-  }, [navigate]);
+  }, []);
 
   if (status === 'loading') {
     return (
@@ -134,6 +140,10 @@ export default function AuthCallback() {
  */
 async function loadRestaurantProfile(userId: string) {
   try {
+    if (!supabase) {
+      throw new Error('Supabase non configuré');
+    }
+
     const { data, error } = await supabase
       .from('app_state')
       .select('data')
