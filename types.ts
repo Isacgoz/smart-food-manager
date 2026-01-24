@@ -1,8 +1,9 @@
 
 export type Role = 'OWNER' | 'MANAGER' | 'SERVER' | 'COOK';
 export type Unit = 'kg' | 'g' | 'L' | 'cl' | 'ml' | 'piece';
-export type PlanType = 'STARTER' | 'PRO' | 'BUSINESS';
+export type PlanType = 'SOLO' | 'TEAM' | 'BUSINESS';
 export type KitchenStatus = 'QUEUED' | 'PREPARING' | 'READY' | 'SERVED';
+export type OrderType = 'DINE_IN' | 'TAKEAWAY';
 
 export interface User {
   id: string;
@@ -31,6 +32,7 @@ export interface Order {
   createdAt?: string; // Timestamp création
   version?: number; // Optimistic locking
   updatedAt?: string;
+  type?: OrderType; // DINE_IN (sur place) ou TAKEAWAY (emporter) - impact TVA
 }
 
 export interface RecipeItem {
@@ -71,6 +73,14 @@ export interface RestaurantProfile {
   ownerEmail: string;
   plan: PlanType;
   createdAt: string;
+  // Infos légales NF525
+  legalName?: string;
+  siren?: string;
+  siret?: string;
+  vatNumber?: string;
+  address?: string;
+  postalCode?: string;
+  city?: string;
 }
 
 // Alias pour compatibilité

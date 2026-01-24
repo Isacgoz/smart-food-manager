@@ -24,7 +24,7 @@ export const saveState = async (restaurantId: string, state: any) => {
   try {
     const timestamp = Date.now();
     const payload = { ...state, _lastUpdatedAt: timestamp };
-    
+
     // 1. Sauvegarde locale pour la réactivité (Offline-first)
     const localKey = `${STORAGE_KEY_PREFIX}${restaurantId}`;
     localStorage.setItem(localKey, JSON.stringify(payload));
@@ -33,13 +33,26 @@ export const saveState = async (restaurantId: string, state: any) => {
     if (supabase) {
       const { error } = await supabase
         .from('app_state')
-        .upsert({ 
-          id: restaurantId, 
-          data: payload, 
-          updated_at: new Date(timestamp).toISOString() 
+        .upsert({
+          id: restaurantId,
+          company_id: restaurantId, // CRITICAL: requis pour RLS multi-tenant
+          data: payload,
+          updated_at: new Date(timestamp).toISOString()
         }, { onConflict: 'id' });
-        
-      if (error) logger.warn('Cloud sync delay', { error: error.message, restaurantId });
+
+      if (error) {
+        logger.warn('Cloud sync delay', { error: error.message, restaurantId });
+        // Retry sans company_id si table legacy
+        if (error.message.includes('company_id')) {
+          await supabase
+            .from('app_state')
+            .upsert({
+              id: restaurantId,
+              data: payload,
+              updated_at: new Date(timestamp).toISOString()
+            }, { onConflict: 'id' });
+        }
+      }
     }
   } catch (err) {
     logger.error('Critical persistence error', err as Error, { restaurantId });
