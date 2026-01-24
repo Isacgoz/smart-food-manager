@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { PlanType, RestaurantProfile } from '../types';
-import { ChefHat, Check, LogIn, Mail, Lock, Eye, EyeOff, Users, Trash2, ArrowRight, Smartphone } from 'lucide-react';
+import { ChefHat, Eye, EyeOff, Trash2, ArrowRight, Key, Copy, CheckCircle, AlertTriangle } from 'lucide-react';
 import { supabase } from '../services/storage';
 
 interface SaaSLoginProps {
@@ -10,6 +10,77 @@ interface SaaSLoginProps {
 
 // CLES DE STOCKAGE CRITIQUES - NE PAS CHANGER
 const SAAS_DB_KEY = 'SMART_FOOD_SAAS_MASTER_DB';
+const LOGIN_ATTEMPTS_KEY = 'SMART_FOOD_LOGIN_ATTEMPTS';
+
+// Rate limiting configuration
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCKOUT_DURATION_MS = 15 * 60 * 1000; // 15 minutes
+
+interface LoginAttempt {
+    email: string;
+    attempts: number;
+    lastAttempt: number;
+    lockedUntil?: number;
+}
+
+// Récupère ou initialise le tracking des tentatives
+const getLoginAttempts = (): Record<string, LoginAttempt> => {
+    try {
+        return JSON.parse(localStorage.getItem(LOGIN_ATTEMPTS_KEY) || '{}');
+    } catch {
+        return {};
+    }
+};
+
+// Vérifie si un email est bloqué
+const isEmailLocked = (email: string): { locked: boolean; remainingMs: number } => {
+    const attempts = getLoginAttempts();
+    const record = attempts[email.toLowerCase()];
+    if (!record?.lockedUntil) return { locked: false, remainingMs: 0 };
+
+    const remaining = record.lockedUntil - Date.now();
+    if (remaining <= 0) {
+        // Lockout expiré, nettoyer
+        delete attempts[email.toLowerCase()];
+        localStorage.setItem(LOGIN_ATTEMPTS_KEY, JSON.stringify(attempts));
+        return { locked: false, remainingMs: 0 };
+    }
+    return { locked: true, remainingMs: remaining };
+};
+
+// Enregistre une tentative échouée
+const recordFailedAttempt = (email: string): number => {
+    const attempts = getLoginAttempts();
+    const key = email.toLowerCase();
+    const now = Date.now();
+
+    if (!attempts[key]) {
+        attempts[key] = { email: key, attempts: 0, lastAttempt: now };
+    }
+
+    // Reset si dernière tentative > lockout duration
+    if (now - attempts[key].lastAttempt > LOCKOUT_DURATION_MS) {
+        attempts[key] = { email: key, attempts: 0, lastAttempt: now };
+    }
+
+    attempts[key].attempts++;
+    attempts[key].lastAttempt = now;
+
+    // Bloquer si trop de tentatives
+    if (attempts[key].attempts >= MAX_LOGIN_ATTEMPTS) {
+        attempts[key].lockedUntil = now + LOCKOUT_DURATION_MS;
+    }
+
+    localStorage.setItem(LOGIN_ATTEMPTS_KEY, JSON.stringify(attempts));
+    return MAX_LOGIN_ATTEMPTS - attempts[key].attempts;
+};
+
+// Réinitialise les tentatives après succès
+const clearLoginAttempts = (email: string): void => {
+    const attempts = getLoginAttempts();
+    delete attempts[email.toLowerCase()];
+    localStorage.setItem(LOGIN_ATTEMPTS_KEY, JSON.stringify(attempts));
+};
 
 // Génère un PIN sécurisé + son hash SHA-256
 const generateSecureCredentials = async () => {
@@ -27,12 +98,22 @@ const generateSecureCredentials = async () => {
 const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
     const [view, setView] = useState<'LOGIN' | 'REGISTER' | 'SAVED'>('LOGIN');
     const [accounts, setAccounts] = useState<any[]>([]);
-    
+
     // Login form
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
+
+    // PIN display modal state
+    const [showPinModal, setShowPinModal] = useState(false);
+    const [generatedPin, setGeneratedPin] = useState('');
+    const [pendingProfile, setPendingProfile] = useState<RestaurantProfile | null>(null);
+    const [pinCopied, setPinCopied] = useState(false);
+
+    // Rate limiting state
+    const [lockoutRemaining, setLockoutRemaining] = useState(0);
+    const [attemptsRemaining, setAttemptsRemaining] = useState(MAX_LOGIN_ATTEMPTS);
 
     // Register form
     const [regName, setRegName] = useState('');
@@ -46,18 +127,47 @@ const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
         if (db.length > 0) setView('SAVED');
     }, []);
 
+    // Vérifier lockout quand l'email change
+    useEffect(() => {
+        if (email) {
+            const lockStatus = isEmailLocked(email);
+            if (lockStatus.locked) {
+                setLockoutRemaining(lockStatus.remainingMs);
+                const minutes = Math.ceil(lockStatus.remainingMs / 60000);
+                setError(`Compte temporairement bloqué. Réessayez dans ${minutes} minute${minutes > 1 ? 's' : ''}.`);
+            } else {
+                setLockoutRemaining(0);
+                setError('');
+            }
+        }
+    }, [email]);
+
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+
+        // Vérifier le rate limiting
+        const lockStatus = isEmailLocked(email);
+        if (lockStatus.locked) {
+            const minutes = Math.ceil(lockStatus.remainingMs / 60000);
+            setLockoutRemaining(lockStatus.remainingMs);
+            setError(`Trop de tentatives. Réessayez dans ${minutes} minute${minutes > 1 ? 's' : ''}.`);
+            return;
+        }
 
         if (!supabase) {
             // Fallback mode local si Supabase non configuré
             const user = accounts.find(u => u.email.toLowerCase() === email.toLowerCase());
             if (user) {
+                clearLoginAttempts(email);
                 onLogin(user.profile);
                 return;
             }
-            setError("Email ou mot de passe invalide.");
+            const remaining = recordFailedAttempt(email);
+            setAttemptsRemaining(remaining);
+            setError(remaining > 0
+                ? `Email ou mot de passe invalide. ${remaining} tentative${remaining > 1 ? 's' : ''} restante${remaining > 1 ? 's' : ''}.`
+                : "Compte temporairement bloqué. Réessayez dans 15 minutes.");
             return;
         }
 
@@ -69,9 +179,11 @@ const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
             });
 
             if (authError) {
-                setError(authError.message === 'Invalid login credentials'
-                    ? 'Email ou mot de passe invalide.'
-                    : authError.message);
+                const remaining = recordFailedAttempt(email);
+                setAttemptsRemaining(remaining);
+                setError(remaining > 0
+                    ? `Email ou mot de passe invalide. ${remaining} tentative${remaining > 1 ? 's' : ''} restante${remaining > 1 ? 's' : ''}.`
+                    : "Compte temporairement bloqué. Réessayez dans 15 minutes.");
                 return;
             }
 
@@ -117,7 +229,6 @@ const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
 
                 // Générer PIN sécurisé pour le nouvel admin
                 const { pin: adminPin, pinHash: adminPinHash } = await generateSecureCredentials();
-                console.log('[LOGIN] PIN Admin généré:', adminPin); // Afficher une seule fois pour l'utilisateur
 
                 // Créer état initial
                 const initialState = {
@@ -149,8 +260,17 @@ const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
                     company_id: data.user.id,
                     data: initialState
                 });
+
+                // Afficher le PIN à l'utilisateur (premier login)
+                clearLoginAttempts(email);
+                setGeneratedPin(adminPin);
+                setPendingProfile(profile);
+                setShowPinModal(true);
+                return;
             }
 
+            // Login réussi - clear rate limiting
+            clearLoginAttempts(email);
             onLogin(profile);
         } catch (err: any) {
             setError(err.message || 'Erreur connexion.');
@@ -182,6 +302,9 @@ const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
                 createdAt: new Date().toISOString()
             };
 
+            // Générer PIN sécurisé en mode local aussi
+            const { pin: localAdminPin } = await generateSecureCredentials();
+
             const newAccount = {
                 email: regEmail.toLowerCase(),
                 profile
@@ -189,7 +312,11 @@ const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
 
             const updatedAccounts = [...accounts, newAccount];
             localStorage.setItem(SAAS_DB_KEY, JSON.stringify(updatedAccounts));
-            onLogin(profile);
+
+            // Afficher le PIN avant de continuer
+            setGeneratedPin(localAdminPin);
+            setPendingProfile(profile);
+            setShowPinModal(true);
             return;
         }
 
@@ -302,8 +429,10 @@ const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
             const updatedAccounts = [...accounts, newAccount];
             localStorage.setItem(SAAS_DB_KEY, JSON.stringify(updatedAccounts));
 
-            // Auto-login après inscription (même si email non vérifié en dev)
-            onLogin(profile);
+            // Afficher le PIN à l'utilisateur avant de continuer
+            setGeneratedPin(newAdminPin);
+            setPendingProfile(profile);
+            setShowPinModal(true);
         } catch (err: any) {
             console.error('[REGISTER] Exception:', err);
             setError(err.message || 'Erreur inscription.');
@@ -377,7 +506,19 @@ const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
                             )}
                         </div>
                         
-                        {error && <div className="bg-red-500/20 border border-red-500 text-red-400 p-4 rounded-2xl mb-6 text-xs font-bold animate-pulse">{error}</div>}
+                        {error && (
+                            <div className="bg-red-500/20 border border-red-500 text-red-400 p-4 rounded-2xl mb-6 text-xs font-bold animate-pulse">
+                                {error}
+                                {lockoutRemaining > 0 && (
+                                    <div className="mt-2 text-red-300 flex items-center gap-2">
+                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                        </svg>
+                                        Compte verrouillé par sécurité
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
                         <form onSubmit={view === 'LOGIN' ? handleLogin : handleRegister} className="space-y-5">
                             {view === 'REGISTER' && (
@@ -413,6 +554,79 @@ const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
                     Version 2.5 • Stockage Local Sécurisé
                 </p>
             </div>
+
+            {/* Modal affichage PIN initial */}
+            {showPinModal && pendingProfile && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="bg-slate-900 border border-slate-700 rounded-[32px] p-8 max-w-md w-full mx-4 shadow-2xl animate-in zoom-in-95 duration-300">
+                        <div className="text-center mb-6">
+                            <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-500/20 rounded-full mb-4">
+                                <AlertTriangle size={32} className="text-amber-500" />
+                            </div>
+                            <h2 className="text-2xl font-black text-white mb-2">
+                                PIN Admin Généré
+                            </h2>
+                            <p className="text-slate-400 text-sm">
+                                Notez ce code PIN, il est nécessaire pour accéder à la caisse.
+                                <br />
+                                <span className="text-amber-400 font-bold">Il ne sera plus affiché après cette étape.</span>
+                            </p>
+                        </div>
+
+                        <div className="bg-slate-800 rounded-2xl p-6 mb-6">
+                            <div className="flex items-center justify-center gap-3 mb-4">
+                                <Key size={24} className="text-emerald-500" />
+                                <span className="text-4xl font-black text-white tracking-[0.5em] font-mono">
+                                    {generatedPin}
+                                </span>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    navigator.clipboard.writeText(generatedPin);
+                                    setPinCopied(true);
+                                    setTimeout(() => setPinCopied(false), 2000);
+                                }}
+                                className="w-full flex items-center justify-center gap-2 py-3 bg-slate-700 hover:bg-slate-600 rounded-xl transition-colors text-sm font-bold"
+                            >
+                                {pinCopied ? (
+                                    <>
+                                        <CheckCircle size={16} className="text-emerald-500" />
+                                        <span className="text-emerald-500">Copié!</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Copy size={16} className="text-slate-400" />
+                                        <span className="text-slate-300">Copier le PIN</span>
+                                    </>
+                                )}
+                            </button>
+                        </div>
+
+                        <div className="bg-slate-800/50 rounded-xl p-4 mb-6 text-xs text-slate-400">
+                            <p className="flex items-start gap-2">
+                                <span className="text-amber-500 mt-0.5">•</span>
+                                Utilisateur: <strong className="text-white">Admin</strong>
+                            </p>
+                            <p className="flex items-start gap-2 mt-1">
+                                <span className="text-amber-500 mt-0.5">•</span>
+                                Vous pourrez changer ce PIN dans les paramètres.
+                            </p>
+                        </div>
+
+                        <button
+                            onClick={() => {
+                                setShowPinModal(false);
+                                if (pendingProfile) {
+                                    onLogin(pendingProfile);
+                                }
+                            }}
+                            className="w-full bg-emerald-600 hover:bg-emerald-500 py-4 rounded-2xl font-black text-lg shadow-xl active:scale-[0.98] transition-all"
+                        >
+                            J'AI NOTÉ MON PIN
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
