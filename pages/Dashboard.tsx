@@ -3,16 +3,19 @@ import React, { useMemo, useState } from 'react';
 import { useStore } from '../store';
 import {
   Banknote, CreditCard, UserCheck, TrendingUp, AlertTriangle,
-  ShieldCheck, Calculator, CheckCircle2, History, Activity, PieChart, Receipt
+  ShieldCheck, Calculator, CheckCircle2, History, Activity, PieChart, Receipt, FileText
 } from 'lucide-react';
 import { calculateEBE, calculateEmployeeRevenue, calculatePaymentTypeBreakdown } from '../shared/services/expenses';
+import { generateZReport, getZReports, DailyZReport } from '../services/nf525';
 
 const Dashboard: React.FC = () => {
-  const { orders, users, cashDeclarations, declareCash, currentUser, products, ingredients, expenses } = useStore();
+  const { orders, users, cashDeclarations, declareCash, currentUser, products, ingredients, expenses, restaurant } = useStore();
 
   // États pour le rapprochement de fin de journée
   const [closingCash, setClosingCash] = useState('');
   const [isClosing, setIsClosing] = useState(false);
+  const [zReportGenerated, setZReportGenerated] = useState<DailyZReport | null>(null);
+  const [isGeneratingZ, setIsGeneratingZ] = useState(false);
 
   const stats = useMemo(() => {
     const today = new Date().toISOString().split('T')[0];
@@ -64,12 +67,21 @@ const Dashboard: React.FC = () => {
       collectors[id].total += o.total;
     });
 
-    // Calcul TVA collectée (CA TTC - CA HT)
-    // Taux moyen restauration: 10% sur place, 5.5% emporter
-    // Simplification: on utilise 10% comme taux principal
+    // Calcul TVA collectée basé sur les taux réels des produits
     const revenueTTC = cashTotal + cardTotal;
-    const revenueHT = revenueTTC / 1.10; // CA HT (taux 10%)
-    const tvaCollectee = revenueTTC - revenueHT;
+    let revenueHT = 0;
+    let tvaCollectee = 0;
+
+    completedToday.forEach(order => {
+      order.items.forEach(item => {
+        const product = products.find(p => p.id === item.productId);
+        const vatRate = product?.vatRate || 10; // Défaut 10% si non trouvé
+        const itemTTC = item.price * item.quantity;
+        const itemHT = itemTTC / (1 + vatRate / 100);
+        revenueHT += itemHT;
+        tvaCollectee += itemTTC - itemHT;
+      });
+    });
 
     return {
       revenue: revenueTTC,
@@ -86,10 +98,28 @@ const Dashboard: React.FC = () => {
     };
   }, [orders, users, cashDeclarations, products, ingredients, expenses]);
 
-  const handleClosing = () => {
+  const handleClosing = async () => {
     const amount = parseFloat(closingCash);
     if (isNaN(amount) || !currentUser) return;
+
+    setIsGeneratingZ(true);
+
+    // 1. Déclarer clôture caisse
     declareCash(currentUser.id, amount, 'CLOSING');
+
+    // 2. Générer Z de caisse NF525
+    const zReport = await generateZReport(
+      restaurant.id,
+      new Date(),
+      orders,
+      products,
+      stats.openingAmount,
+      amount,
+      currentUser.id
+    );
+
+    setZReportGenerated(zReport);
+    setIsGeneratingZ(false);
     setIsClosing(true);
     setClosingCash('');
   };
@@ -356,14 +386,56 @@ const Dashboard: React.FC = () => {
 
       {isClosing && (
         <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-xl z-[200] flex items-center justify-center p-6 animate-in fade-in duration-500">
-          <div className="bg-white p-12 rounded-[50px] shadow-2xl text-center max-w-sm animate-in zoom-in-95 duration-300 border-4 border-emerald-500">
+          <div className="bg-white p-12 rounded-[50px] shadow-2xl text-center max-w-md animate-in zoom-in-95 duration-300 border-4 border-emerald-500">
             <div className="w-24 h-24 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
               <CheckCircle2 size={60}/>
             </div>
             <h3 className="text-3xl font-black text-slate-950 mb-4 tracking-tighter uppercase">Caisse Clôturée</h3>
-            <p className="text-slate-500 font-bold mb-10 leading-relaxed uppercase text-xs tracking-widest">Le rapport de fin de journée a été archivé. Vous pouvez maintenant éteindre le système en toute sécurité.</p>
-            <button 
-              onClick={() => setIsClosing(false)}
+
+            {zReportGenerated && (
+              <div className="bg-slate-50 p-6 rounded-3xl mb-6 text-left">
+                <div className="flex items-center gap-2 mb-4">
+                  <FileText className="text-emerald-600" size={20}/>
+                  <span className="text-xs font-black text-emerald-600 uppercase tracking-widest">Z de Caisse NF525</span>
+                </div>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Rapport n°</span>
+                    <span className="font-black text-slate-900">{zReportGenerated.report_number}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">CA Total</span>
+                    <span className="font-black text-emerald-600">{zReportGenerated.total_sales.toFixed(2)} €</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Espèces</span>
+                    <span className="font-bold text-slate-700">{zReportGenerated.total_cash.toFixed(2)} €</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">CB</span>
+                    <span className="font-bold text-slate-700">{zReportGenerated.total_card.toFixed(2)} €</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Commandes</span>
+                    <span className="font-bold text-slate-700">{zReportGenerated.orders_count}</span>
+                  </div>
+                  {zReportGenerated.cash_difference !== null && zReportGenerated.cash_difference !== undefined && (
+                    <div className={`flex justify-between pt-2 border-t border-slate-200 ${zReportGenerated.cash_difference !== 0 ? 'text-orange-600' : 'text-emerald-600'}`}>
+                      <span>Écart caisse</span>
+                      <span className="font-black">{zReportGenerated.cash_difference >= 0 ? '+' : ''}{zReportGenerated.cash_difference.toFixed(2)} €</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <p className="text-slate-500 font-bold mb-10 leading-relaxed uppercase text-xs tracking-widest">
+              {zReportGenerated
+                ? 'Le rapport Z a été archivé conformément NF525.'
+                : 'Le rapport de fin de journée a été archivé.'}
+            </p>
+            <button
+              onClick={() => { setIsClosing(false); setZReportGenerated(null); }}
               className="w-full bg-slate-950 text-white py-6 rounded-[24px] font-black text-xl hover:bg-black transition-all shadow-2xl uppercase tracking-tighter"
             >
               Fermer

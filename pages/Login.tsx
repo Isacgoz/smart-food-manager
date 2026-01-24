@@ -72,8 +72,8 @@ const Login: React.FC = () => {
   const handleCashSubmit = (e: React.FormEvent) => {
       e.preventDefault();
       if (!selectedUser || !cashAmount) return;
-      
-      declareCash(selectedUser.id, parseFloat(cashAmount));
+
+      declareCash(selectedUser.id, parseFloat(cashAmount), 'OPENING');
       login(selectedUser);
   };
 

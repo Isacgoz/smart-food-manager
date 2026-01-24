@@ -105,6 +105,7 @@ export const generateInvoice = (
 
   // Déterminer taux TVA (simplifié pour MVP)
   // TODO: Gérer TVA par produit (5.5%, 10%, 20%)
+  // Défaut 10% (sur place) si type non spécifié
   const defaultVATRate = order.type === 'TAKEAWAY' ? 5.5 : 10;
 
   const lines: InvoiceLineItem[] = order.items.map(item => ({
