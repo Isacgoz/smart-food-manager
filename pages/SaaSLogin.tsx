@@ -11,6 +11,19 @@ interface SaaSLoginProps {
 // CLES DE STOCKAGE CRITIQUES - NE PAS CHANGER
 const SAAS_DB_KEY = 'SMART_FOOD_SAAS_MASTER_DB';
 
+// Génère un PIN sécurisé + son hash SHA-256
+const generateSecureCredentials = async () => {
+    const array = new Uint32Array(1);
+    crypto.getRandomValues(array);
+    const pin = String(array[0] % 900000 + 100000).slice(0, 4); // PIN 4 chiffres
+    const encoder = new TextEncoder();
+    const data = encoder.encode(pin);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const pinHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return { pin, pinHash };
+};
+
 const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
     const [view, setView] = useState<'LOGIN' | 'REGISTER' | 'SAVED'>('LOGIN');
     const [accounts, setAccounts] = useState<any[]>([]);
@@ -102,15 +115,20 @@ const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
                     is_active: true
                 });
 
+                // Générer PIN sécurisé pour le nouvel admin
+                const { pin: adminPin, pinHash: adminPinHash } = await generateSecureCredentials();
+                console.log('[LOGIN] PIN Admin généré:', adminPin); // Afficher une seule fois pour l'utilisateur
+
                 // Créer état initial
                 const initialState = {
                     restaurant: profile,
                     users: [{
                         id: '1',
                         name: 'Admin',
-                        pin: '1234',
-                        pinHash: '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4',
-                        role: 'OWNER'
+                        pin: '', // Ne plus stocker le PIN en clair
+                        pinHash: adminPinHash,
+                        role: 'OWNER',
+                        requirePinChange: true // Forcer changement au premier login
                     }],
                     products: [],
                     tables: [],
@@ -121,7 +139,8 @@ const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
                     cashDeclarations: [],
                     partners: [],
                     supplierOrders: [],
-                    _lastUpdatedAt: Date.now()
+                    _lastUpdatedAt: Date.now(),
+                    _initialAdminPin: adminPin // Temporaire: pour affichage unique
                 };
 
                 await supabase.from('app_state').delete().eq('id', data.user.id);
@@ -233,14 +252,18 @@ const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
                 createdAt: new Date().toISOString()
             };
 
+            // Générer PIN sécurisé pour l'admin du nouveau restaurant
+            const { pin: newAdminPin, pinHash: newAdminPinHash } = await generateSecureCredentials();
+
             const initialState = {
                 restaurant: profile,
                 users: [{
                     id: '1',
                     name: 'Admin',
-                    pin: '1234',
-                    pinHash: '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4',
-                    role: 'OWNER'
+                    pin: '', // Ne plus stocker en clair
+                    pinHash: newAdminPinHash,
+                    role: 'OWNER',
+                    requirePinChange: true
                 }],
                 products: [],
                 tables: [],
@@ -251,7 +274,8 @@ const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
                 cashDeclarations: [],
                 partners: [],
                 supplierOrders: [],
-                _lastUpdatedAt: Date.now()
+                _lastUpdatedAt: Date.now(),
+                _initialAdminPin: newAdminPin // Pour affichage unique à l'inscription
             };
 
             // ÉTAPE 3: Nettoyer puis créer app_state

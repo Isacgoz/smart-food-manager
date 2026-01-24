@@ -9,7 +9,19 @@ import { hashUserPIN } from './shared/services/auth';
 import { useToast } from './shared/hooks/useToast';
 import { archiveInvoice, getLastInvoiceHash, logPriceChange, RestaurantLegalInfo } from './services/nf525';
 
-const generateId = () => Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+// Génération ID sécurisée avec crypto
+const generateId = () => {
+  const array = new Uint8Array(16);
+  crypto.getRandomValues(array);
+  return Array.from(array, b => b.toString(16).padStart(2, '0')).join('');
+};
+
+// Génère un PIN aléatoire sécurisé (4-6 chiffres)
+const generateSecurePin = () => {
+  const array = new Uint32Array(1);
+  crypto.getRandomValues(array);
+  return String(array[0] % 900000 + 100000).slice(0, 6);
+};
 
 interface AppContextType {
   restaurant: RestaurantProfile;
@@ -63,13 +75,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export const AppProvider: React.FC<{ children: React.ReactNode, restaurant: RestaurantProfile, onRestaurantLogout: () => void }> = ({ children, restaurant, onRestaurantLogout }) => {
   const { notify: toast } = useToast();
   const [data, setData] = useState({
-    users: [{
-      id: '1',
-      name: 'Admin',
-      pin: '1234',
-      pinHash: '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4',
-      role: 'OWNER'
-    }] as User[],
+    users: [] as User[], // Chargé depuis Supabase - plus de PIN hardcodé
     orders: [] as Order[],
     ingredients: [] as Ingredient[],
     products: [] as Product[],
