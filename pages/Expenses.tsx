@@ -236,7 +236,7 @@ const Expenses: React.FC = () => {
                     type="number"
                     step="0.01"
                     value={formData.amount || ''}
-                    onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) })}
+                    onChange={(e) => setFormData({ ...formData, amount: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
                     className="w-full px-6 py-4 rounded-[20px] border-2 border-slate-200 font-bold focus:border-slate-950 outline-none"
                     placeholder="0.00"
                     required

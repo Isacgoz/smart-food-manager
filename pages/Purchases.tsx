@@ -85,19 +85,19 @@ const Purchases: React.FC = () => {
                          </div>
                          <div className="md:col-span-2">
                             <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Quantité</label>
-                            <input type="number" placeholder="0"
+                            <input type="number" step="0.001" placeholder="0"
                                 className="w-full p-3 border border-slate-200 rounded-xl text-sm bg-white font-black text-slate-950"
                                 value={tempOrderItem.qty || 0}
                                 onFocus={(e) => e.target.select()}
-                                onChange={e => setTempOrderItem({...tempOrderItem, qty: parseFloat(e.target.value)})} />
+                                onChange={e => setTempOrderItem({...tempOrderItem, qty: e.target.value === '' ? 0 : parseFloat(e.target.value)})} />
                          </div>
                          <div className="md:col-span-3">
                             <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Prix Total HT</label>
-                            <input type="number" placeholder="0.00"
+                            <input type="number" step="0.01" placeholder="0.00"
                                 className="w-full p-3 border border-slate-200 rounded-xl text-sm bg-white font-black text-slate-950"
                                 value={tempOrderItem.cost || 0}
                                 onFocus={(e) => e.target.select()}
-                                onChange={e => setTempOrderItem({...tempOrderItem, cost: parseFloat(e.target.value)})} />
+                                onChange={e => setTempOrderItem({...tempOrderItem, cost: e.target.value === '' ? 0 : parseFloat(e.target.value)})} />
                          </div>
                          <div className="md:col-span-2">
                             <button
