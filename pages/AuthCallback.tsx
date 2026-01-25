@@ -1,16 +1,51 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../services/storage';
+import { Eye, EyeOff } from 'lucide-react';
 
 /**
  * Page de callback après confirmation email Supabase
- * URL: /auth/callback?token=xxx
+ * URL: /auth/callback?token=xxx ou /auth/callback?type=recovery
  */
 export default function AuthCallback() {
-  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
+  const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'reset_password'>('loading');
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [resetError, setResetError] = useState('');
 
   const navigate = (path: string) => {
     window.location.href = path === '/dashboard' ? '/' : '/';
+  };
+
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetError('');
+
+    if (newPassword !== confirmPassword) {
+      setResetError('Les mots de passe ne correspondent pas');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setResetError('Le mot de passe doit contenir au moins 6 caractères');
+      return;
+    }
+
+    try {
+      if (!supabase) throw new Error('Supabase non configuré');
+
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) throw error;
+
+      setStatus('success');
+      setTimeout(() => navigate('/'), 2000);
+    } catch (error: any) {
+      setResetError(error.message || 'Erreur lors de la réinitialisation');
+    }
   };
 
   useEffect(() => {
@@ -18,6 +53,15 @@ export default function AuthCallback() {
       try {
         if (!supabase) {
           throw new Error('Supabase non configuré');
+        }
+
+        // Détecter si c'est un recovery (mot de passe oublié)
+        const params = new URLSearchParams(window.location.search);
+        const type = params.get('type');
+
+        if (type === 'recovery') {
+          setStatus('reset_password');
+          return;
         }
 
         // Supabase gère automatiquement le token dans l'URL
@@ -52,6 +96,75 @@ export default function AuthCallback() {
 
     handleCallback();
   }, []);
+
+  if (status === 'reset_password') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-950 p-6">
+        <div className="bg-slate-900 border border-slate-700 rounded-[32px] p-8 max-w-md w-full shadow-2xl">
+          <h1 className="text-2xl font-black text-white mb-2">
+            Nouveau mot de passe
+          </h1>
+          <p className="text-slate-400 text-sm mb-6">
+            Choisissez un nouveau mot de passe sécurisé.
+          </p>
+
+          {resetError && (
+            <div className="bg-red-500/20 border border-red-500 text-red-400 p-4 rounded-2xl mb-6 text-xs font-bold">
+              {resetError}
+            </div>
+          )}
+
+          <form onSubmit={handlePasswordReset} className="space-y-5">
+            <div className="space-y-1">
+              <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">
+                Nouveau mot de passe
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={newPassword}
+                  onChange={e => setNewPassword(e.target.value)}
+                  className="w-full bg-slate-800/50 border border-slate-700 rounded-2xl p-4 pr-12 outline-none focus:border-emerald-500 transition-all text-white font-bold"
+                  placeholder="••••••••"
+                  required
+                  minLength={6}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
+                >
+                  {showPassword ? <EyeOff size={20}/> : <Eye size={20}/>}
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">
+                Confirmer le mot de passe
+              </label>
+              <input
+                type={showPassword ? "text" : "password"}
+                value={confirmPassword}
+                onChange={e => setConfirmPassword(e.target.value)}
+                className="w-full bg-slate-800/50 border border-slate-700 rounded-2xl p-4 outline-none focus:border-emerald-500 transition-all text-white font-bold"
+                placeholder="••••••••"
+                required
+                minLength={6}
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="w-full bg-emerald-600 hover:bg-emerald-500 py-4 rounded-2xl font-black text-lg shadow-xl active:scale-[0.98] transition-all"
+            >
+              RÉINITIALISER
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   if (status === 'loading') {
     return (

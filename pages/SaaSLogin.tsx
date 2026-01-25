@@ -96,7 +96,7 @@ const generateSecureCredentials = async () => {
 };
 
 const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
-    const [view, setView] = useState<'LOGIN' | 'REGISTER' | 'SAVED'>('LOGIN');
+    const [view, setView] = useState<'LOGIN' | 'REGISTER' | 'SAVED' | 'FORGOT_PASSWORD'>('LOGIN');
     const [accounts, setAccounts] = useState<any[]>([]);
 
     // Login form
@@ -104,6 +104,10 @@ const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
+
+    // Forgot password
+    const [forgotEmail, setForgotEmail] = useState('');
+    const [resetSent, setResetSent] = useState(false);
 
     // PIN display modal state
     const [showPinModal, setShowPinModal] = useState(false);
@@ -326,7 +330,7 @@ const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
                 email: regEmail.toLowerCase().trim(),
                 password: regPassword,
                 options: {
-                    emailRedirectTo: window.location.origin,
+                    emailRedirectTo: `${window.location.origin}/auth/callback`,
                     data: {
                         restaurant_name: regName.trim(),
                         plan: regPlan
@@ -446,6 +450,34 @@ const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
         if (filtered.length === 0) setView('LOGIN');
     };
 
+    const handleForgotPassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError('');
+
+        if (!supabase) {
+            setError("La réinitialisation du mot de passe nécessite une connexion internet.");
+            return;
+        }
+
+        try {
+            const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+                forgotEmail.toLowerCase().trim(),
+                {
+                    redirectTo: `${window.location.origin}/auth/callback?type=recovery`
+                }
+            );
+
+            if (resetError) {
+                setError(resetError.message);
+                return;
+            }
+
+            setResetSent(true);
+        } catch (err: any) {
+            setError(err.message || 'Erreur lors de l\'envoi.');
+        }
+    };
+
     return (
         <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-white overflow-hidden relative">
             <div className="absolute top-0 left-0 w-full h-full z-0 opacity-10 pointer-events-none">
@@ -495,6 +527,59 @@ const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
                             Créer un nouveau restaurant
                         </button>
                     </div>
+                ) : view === 'FORGOT_PASSWORD' ? (
+                    <div className="bg-slate-900/80 backdrop-blur-2xl p-8 rounded-[40px] border border-slate-800 shadow-2xl animate-in slide-in-from-bottom-6 duration-500">
+                        <div className="mb-8">
+                            <h2 className="text-2xl font-black mb-2">Mot de passe oublié</h2>
+                            <p className="text-slate-400 text-sm">
+                                Entrez votre email pour recevoir un lien de réinitialisation.
+                            </p>
+                        </div>
+
+                        {resetSent ? (
+                            <div className="bg-emerald-500/20 border border-emerald-500 text-emerald-400 p-6 rounded-2xl mb-6 text-center">
+                                <CheckCircle size={48} className="mx-auto mb-4 text-emerald-500" />
+                                <p className="font-bold mb-2">Email envoyé !</p>
+                                <p className="text-xs text-emerald-300">
+                                    Consultez votre boîte mail et cliquez sur le lien pour réinitialiser votre mot de passe.
+                                </p>
+                            </div>
+                        ) : (
+                            <>
+                                {error && (
+                                    <div className="bg-red-500/20 border border-red-500 text-red-400 p-4 rounded-2xl mb-6 text-xs font-bold">
+                                        {error}
+                                    </div>
+                                )}
+
+                                <form onSubmit={handleForgotPassword} className="space-y-5">
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Email</label>
+                                        <input
+                                            type="email"
+                                            value={forgotEmail}
+                                            onChange={e => setForgotEmail(e.target.value)}
+                                            className="w-full bg-slate-800/50 border border-slate-700 rounded-2xl p-4 outline-none focus:border-emerald-500 transition-all text-white font-bold"
+                                            placeholder="votre@email.com"
+                                            required
+                                        />
+                                    </div>
+
+                                    <button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-500 py-5 rounded-[24px] font-black text-lg shadow-2xl shadow-emerald-900/20 active:scale-[0.98] transition-all">
+                                        ENVOYER LE LIEN
+                                    </button>
+                                </form>
+                            </>
+                        )}
+
+                        <button
+                            type="button"
+                            onClick={() => { setView('LOGIN'); setError(''); setResetSent(false); }}
+                            className="w-full mt-8 text-xs text-slate-500 hover:text-white transition-colors font-bold uppercase tracking-widest"
+                        >
+                            Retour à la connexion
+                        </button>
+                    </div>
                 ) : (
                     <div className="bg-slate-900/80 backdrop-blur-2xl p-8 rounded-[40px] border border-slate-800 shadow-2xl animate-in slide-in-from-bottom-6 duration-500">
                         <div className="flex justify-between items-center mb-8">
@@ -505,7 +590,7 @@ const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
                                 <button type="button" onClick={() => setView('SAVED')} className="text-[10px] font-black uppercase text-slate-500 hover:text-white transition-colors">Mes Comptes</button>
                             )}
                         </div>
-                        
+
                         {error && (
                             <div className="bg-red-500/20 border border-red-500 text-red-400 p-4 rounded-2xl mb-6 text-xs font-bold animate-pulse">
                                 {error}
@@ -531,19 +616,31 @@ const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
                                 <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Email Gérant</label>
                                 <input type="email" value={view === 'LOGIN' ? email : regEmail} onChange={e => view === 'LOGIN' ? setEmail(e.target.value) : setRegEmail(e.target.value)} className="w-full bg-slate-800/50 border border-slate-700 rounded-2xl p-4 outline-none focus:border-emerald-500 transition-all text-white font-bold" placeholder="votre@email.com" required />
                             </div>
-                            <div className="space-y-1 relative">
+                            <div className="space-y-1">
                                 <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Mot de passe</label>
-                                <input type={showPassword ? "text" : "password"} value={view === 'LOGIN' ? password : regPassword} onChange={e => view === 'LOGIN' ? setPassword(e.target.value) : setRegPassword(e.target.value)} className="w-full bg-slate-800/50 border border-slate-700 rounded-2xl p-4 pr-12 outline-none focus:border-emerald-500 transition-all text-white font-bold" placeholder="••••••••" required />
-                                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 bottom-4 text-slate-500 hover:text-white">
-                                    {showPassword ? <EyeOff size={20}/> : <Eye size={20}/>}
-                                </button>
+                                <div className="relative">
+                                    <input type={showPassword ? "text" : "password"} value={view === 'LOGIN' ? password : regPassword} onChange={e => view === 'LOGIN' ? setPassword(e.target.value) : setRegPassword(e.target.value)} className="w-full bg-slate-800/50 border border-slate-700 rounded-2xl p-4 pr-12 outline-none focus:border-emerald-500 transition-all text-white font-bold" placeholder="••••••••" required />
+                                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors">
+                                        {showPassword ? <EyeOff size={20}/> : <Eye size={20}/>}
+                                    </button>
+                                </div>
                             </div>
 
                             <button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-500 py-5 rounded-[24px] font-black text-lg shadow-2xl shadow-emerald-900/20 active:scale-[0.98] transition-all mt-4">
                                 {view === 'LOGIN' ? 'OUVRIR MA SESSION' : 'CRÉER MON COMPTE'}
                             </button>
                         </form>
-                        
+
+                        {view === 'LOGIN' && (
+                            <button
+                                type="button"
+                                onClick={() => { setView('FORGOT_PASSWORD'); setError(''); }}
+                                className="w-full mt-4 text-xs text-slate-400 hover:text-emerald-500 transition-colors font-bold"
+                            >
+                                Mot de passe oublié ?
+                            </button>
+                        )}
+
                         <button type="button" onClick={() => setView(view === 'LOGIN' ? 'REGISTER' : 'LOGIN')} className="w-full mt-8 text-xs text-slate-500 hover:text-white transition-colors font-bold uppercase tracking-widest">
                             {view === 'LOGIN' ? "Pas de compte ? S'inscrire" : "Déjà client ? Se connecter"}
                         </button>
