@@ -151,12 +151,16 @@ const Stocks: React.FC = () => {
                                         </td>
                                         <td className="p-4 text-sm">
                                             {isEditing ? (
-                                                <input type="number"
-                                                    step="0.001"
+                                                <input type="text"
+                                                    inputMode="decimal"
                                                     className="border border-slate-300 rounded-lg p-2 w-20 font-bold text-slate-950"
-                                                    value={editValues.minStock}
+                                                    value={editValues.minStock || ''}
                                                     onFocus={(e) => e.target.select()}
-                                                    onChange={e => setEditValues({...editValues, minStock: e.target.value === '' ? 0 : parseFloat(e.target.value)})}/>
+                                                    onChange={e => {
+                                                        const val = e.target.value.replace(',', '.');
+                                                        const num = val === '' ? 0 : parseFloat(val);
+                                                        if (!isNaN(num) || val === '') setEditValues({...editValues, minStock: num});
+                                                    }}/>
                                             ) : (
                                                 <span className="text-slate-950 font-black">{ing.minStock} {ing.unit}</span>
                                             )}
@@ -213,10 +217,14 @@ const Stocks: React.FC = () => {
                             <div>
                                 <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Seuil Alerte</label>
                                 <input
-                                    type="number" step="0.001" placeholder="0.0" className="w-full p-4 border border-slate-200 rounded-2xl text-slate-950 font-black bg-slate-50 outline-none"
-                                    value={newIng.minStock || 0}
+                                    type="text" inputMode="decimal" placeholder="0.0" className="w-full p-4 border border-slate-200 rounded-2xl text-slate-950 font-black bg-slate-50 outline-none"
+                                    value={newIng.minStock || ''}
                                     onFocus={(e) => e.target.select()}
-                                    onChange={e => setNewIng({...newIng, minStock: e.target.value === '' ? 0 : parseFloat(e.target.value)})}
+                                    onChange={e => {
+                                        const val = e.target.value.replace(',', '.');
+                                        const num = val === '' ? 0 : parseFloat(val);
+                                        if (!isNaN(num) || val === '') setNewIng({...newIng, minStock: num});
+                                    }}
                                 />
                             </div>
                         </div>

@@ -217,12 +217,16 @@ const Menu: React.FC = () => {
                                 ) : (
                                     <div className="flex items-center gap-2 flex-1">
                                         <input
-                                            type="number"
-                                            step="0.1"
+                                            type="text"
+                                            inputMode="decimal"
                                             className="w-full p-4 border border-slate-200 rounded-2xl bg-slate-50 font-bold text-slate-950 outline-none"
-                                            value={formData.vatRate}
+                                            value={formData.vatRate || ''}
                                             onFocus={(e) => e.target.select()}
-                                            onChange={e => setFormData({...formData, vatRate: e.target.value === '' ? 0 : parseFloat(e.target.value)})}
+                                            onChange={e => {
+                                                const val = e.target.value.replace(',', '.');
+                                                const num = val === '' ? 0 : parseFloat(val);
+                                                if (!isNaN(num) || val === '') setFormData({...formData, vatRate: num});
+                                            }}
                                             placeholder="%"
                                         />
                                         <button onClick={() => setCustomVat(false)} className="p-2 text-slate-400 hover:text-slate-600"><X size={20}/></button>
@@ -235,10 +239,14 @@ const Menu: React.FC = () => {
                     <div>
                         <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Prix de vente TTC (€)</label>
                         <input className="w-full p-4 border border-slate-200 rounded-2xl text-2xl font-black text-slate-950 bg-slate-50 outline-none focus:ring-4 focus:ring-emerald-500/10"
-                            type="number" step="0.01"
-                            value={formData.price}
+                            type="text" inputMode="decimal"
+                            value={formData.price || ''}
                             onFocus={(e) => e.target.select()}
-                            onChange={e => setFormData({...formData, price: e.target.value === '' ? 0 : parseFloat(e.target.value)})} />
+                            onChange={e => {
+                                const val = e.target.value.replace(',', '.');
+                                const num = val === '' ? 0 : parseFloat(val);
+                                if (!isNaN(num) || val === '') setFormData({...formData, price: num});
+                            }} />
                     </div>
                 </div>
 
@@ -310,10 +318,14 @@ const Menu: React.FC = () => {
                             <div className="flex-1">
                                 <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Quantité (Unité)</label>
                                 <input
-                                    type="number" step="0.001" className="w-full p-4 border border-slate-200 rounded-2xl text-sm text-slate-950 bg-slate-50 font-black outline-none focus:ring-4 focus:ring-blue-500/10" placeholder="0"
+                                    type="text" inputMode="decimal" className="w-full p-4 border border-slate-200 rounded-2xl text-sm text-slate-950 bg-slate-50 font-black outline-none focus:ring-4 focus:ring-blue-500/10" placeholder="0"
                                     value={tempRecipeItem.quantity || ''}
                                     onFocus={(e) => e.target.select()}
-                                    onChange={e => setTempRecipeItem({...tempRecipeItem, quantity: e.target.value === '' ? 0 : parseFloat(e.target.value)})}
+                                    onChange={e => {
+                                        const val = e.target.value.replace(',', '.');
+                                        const num = val === '' ? 0 : parseFloat(val);
+                                        if (!isNaN(num) || val === '') setTempRecipeItem({...tempRecipeItem, quantity: num});
+                                    }}
                                 />
                             </div>
                              <button 

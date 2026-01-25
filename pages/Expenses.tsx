@@ -233,10 +233,14 @@ const Expenses: React.FC = () => {
                 <div>
                   <label className="block text-sm font-black text-slate-700 uppercase tracking-widest mb-2">Montant (€)</label>
                   <input
-                    type="number"
-                    step="0.01"
+                    type="text"
+                    inputMode="decimal"
                     value={formData.amount || ''}
-                    onChange={(e) => setFormData({ ...formData, amount: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(',', '.');
+                      const num = val === '' ? 0 : parseFloat(val);
+                      if (!isNaN(num) || val === '') setFormData({ ...formData, amount: num });
+                    }}
                     className="w-full px-6 py-4 rounded-[20px] border-2 border-slate-200 font-bold focus:border-slate-950 outline-none"
                     placeholder="0.00"
                     required
