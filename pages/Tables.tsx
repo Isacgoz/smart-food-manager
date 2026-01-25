@@ -27,7 +27,7 @@ const Tables: React.FC = () => {
           </div>
           <div className="w-32">
             <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Couverts</label>
-            <input type="number" className="w-full p-2 border rounded text-slate-900" value={newTable.seats} onChange={e => setNewTable({...newTable, seats: parseInt(e.target.value)})} />
+            <input type="number" min="1" step="1" className="w-full p-2 border rounded text-slate-900" value={newTable.seats} onChange={e => setNewTable({...newTable, seats: e.target.value === '' ? 0 : parseInt(e.target.value)})} />
           </div>
           <button onClick={handleAdd} className="bg-slate-800 text-white px-4 py-2 rounded hover:bg-slate-900 flex items-center gap-2">
             <Plus size={18} /> Ajouter
