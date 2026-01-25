@@ -220,12 +220,21 @@ const Menu: React.FC = () => {
                                             type="text"
                                             inputMode="decimal"
                                             className="w-full p-4 border border-slate-200 rounded-2xl bg-slate-50 font-bold text-slate-950 outline-none"
-                                            value={formData.vatRate || ''}
+                                            value={typeof formData.vatRate === 'number' ? formData.vatRate : formData.vatRate || ''}
                                             onFocus={(e) => e.target.select()}
                                             onChange={e => {
                                                 const val = e.target.value.replace(',', '.');
+                                                if (val === '' || val.endsWith('.') || val.endsWith(',')) {
+                                                    setFormData({...formData, vatRate: val as any});
+                                                } else {
+                                                    const num = parseFloat(val);
+                                                    if (!isNaN(num)) setFormData({...formData, vatRate: num});
+                                                }
+                                            }}
+                                            onBlur={e => {
+                                                const val = e.target.value.replace(',', '.');
                                                 const num = val === '' ? 0 : parseFloat(val);
-                                                if (!isNaN(num) || val === '') setFormData({...formData, vatRate: num});
+                                                if (!isNaN(num)) setFormData({...formData, vatRate: num});
                                             }}
                                             placeholder="%"
                                         />
@@ -240,12 +249,23 @@ const Menu: React.FC = () => {
                         <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Prix de vente TTC (€)</label>
                         <input className="w-full p-4 border border-slate-200 rounded-2xl text-2xl font-black text-slate-950 bg-slate-50 outline-none focus:ring-4 focus:ring-emerald-500/10"
                             type="text" inputMode="decimal"
-                            value={formData.price || ''}
+                            value={typeof formData.price === 'number' ? formData.price : formData.price || ''}
                             onFocus={(e) => e.target.select()}
                             onChange={e => {
                                 const val = e.target.value.replace(',', '.');
+                                // Garde la string pendant la saisie si elle se termine par un point ou est vide
+                                if (val === '' || val.endsWith('.') || val.endsWith(',')) {
+                                    setFormData({...formData, price: val as any});
+                                } else {
+                                    const num = parseFloat(val);
+                                    if (!isNaN(num)) setFormData({...formData, price: num});
+                                }
+                            }}
+                            onBlur={e => {
+                                // Convertir en number au blur
+                                const val = e.target.value.replace(',', '.');
                                 const num = val === '' ? 0 : parseFloat(val);
-                                if (!isNaN(num) || val === '') setFormData({...formData, price: num});
+                                if (!isNaN(num)) setFormData({...formData, price: num});
                             }} />
                     </div>
                 </div>
@@ -319,12 +339,21 @@ const Menu: React.FC = () => {
                                 <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Quantité (Unité)</label>
                                 <input
                                     type="text" inputMode="decimal" className="w-full p-4 border border-slate-200 rounded-2xl text-sm text-slate-950 bg-slate-50 font-black outline-none focus:ring-4 focus:ring-blue-500/10" placeholder="0"
-                                    value={tempRecipeItem.quantity || ''}
+                                    value={typeof tempRecipeItem.quantity === 'number' ? tempRecipeItem.quantity : tempRecipeItem.quantity || ''}
                                     onFocus={(e) => e.target.select()}
                                     onChange={e => {
                                         const val = e.target.value.replace(',', '.');
+                                        if (val === '' || val.endsWith('.') || val.endsWith(',')) {
+                                            setTempRecipeItem({...tempRecipeItem, quantity: val as any});
+                                        } else {
+                                            const num = parseFloat(val);
+                                            if (!isNaN(num)) setTempRecipeItem({...tempRecipeItem, quantity: num});
+                                        }
+                                    }}
+                                    onBlur={e => {
+                                        const val = e.target.value.replace(',', '.');
                                         const num = val === '' ? 0 : parseFloat(val);
-                                        if (!isNaN(num) || val === '') setTempRecipeItem({...tempRecipeItem, quantity: num});
+                                        if (!isNaN(num)) setTempRecipeItem({...tempRecipeItem, quantity: num});
                                     }}
                                 />
                             </div>

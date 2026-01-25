@@ -154,12 +154,21 @@ const Stocks: React.FC = () => {
                                                 <input type="text"
                                                     inputMode="decimal"
                                                     className="border border-slate-300 rounded-lg p-2 w-20 font-bold text-slate-950"
-                                                    value={editValues.minStock || ''}
+                                                    value={typeof editValues.minStock === 'number' ? editValues.minStock : editValues.minStock || ''}
                                                     onFocus={(e) => e.target.select()}
                                                     onChange={e => {
                                                         const val = e.target.value.replace(',', '.');
+                                                        if (val === '' || val.endsWith('.') || val.endsWith(',')) {
+                                                            setEditValues({...editValues, minStock: val as any});
+                                                        } else {
+                                                            const num = parseFloat(val);
+                                                            if (!isNaN(num)) setEditValues({...editValues, minStock: num});
+                                                        }
+                                                    }}
+                                                    onBlur={e => {
+                                                        const val = e.target.value.replace(',', '.');
                                                         const num = val === '' ? 0 : parseFloat(val);
-                                                        if (!isNaN(num) || val === '') setEditValues({...editValues, minStock: num});
+                                                        if (!isNaN(num)) setEditValues({...editValues, minStock: num});
                                                     }}/>
                                             ) : (
                                                 <span className="text-slate-950 font-black">{ing.minStock} {ing.unit}</span>
@@ -218,12 +227,21 @@ const Stocks: React.FC = () => {
                                 <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Seuil Alerte</label>
                                 <input
                                     type="text" inputMode="decimal" placeholder="0.0" className="w-full p-4 border border-slate-200 rounded-2xl text-slate-950 font-black bg-slate-50 outline-none"
-                                    value={newIng.minStock || ''}
+                                    value={typeof newIng.minStock === 'number' ? newIng.minStock : newIng.minStock || ''}
                                     onFocus={(e) => e.target.select()}
                                     onChange={e => {
                                         const val = e.target.value.replace(',', '.');
+                                        if (val === '' || val.endsWith('.') || val.endsWith(',')) {
+                                            setNewIng({...newIng, minStock: val as any});
+                                        } else {
+                                            const num = parseFloat(val);
+                                            if (!isNaN(num)) setNewIng({...newIng, minStock: num});
+                                        }
+                                    }}
+                                    onBlur={e => {
+                                        const val = e.target.value.replace(',', '.');
                                         const num = val === '' ? 0 : parseFloat(val);
-                                        if (!isNaN(num) || val === '') setNewIng({...newIng, minStock: num});
+                                        if (!isNaN(num)) setNewIng({...newIng, minStock: num});
                                     }}
                                 />
                             </div>

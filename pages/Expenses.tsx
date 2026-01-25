@@ -235,11 +235,20 @@ const Expenses: React.FC = () => {
                   <input
                     type="text"
                     inputMode="decimal"
-                    value={formData.amount || ''}
+                    value={typeof formData.amount === 'number' ? formData.amount : formData.amount || ''}
                     onChange={(e) => {
                       const val = e.target.value.replace(',', '.');
+                      if (val === '' || val.endsWith('.') || val.endsWith(',')) {
+                        setFormData({ ...formData, amount: val as any });
+                      } else {
+                        const num = parseFloat(val);
+                        if (!isNaN(num)) setFormData({ ...formData, amount: num });
+                      }
+                    }}
+                    onBlur={(e) => {
+                      const val = e.target.value.replace(',', '.');
                       const num = val === '' ? 0 : parseFloat(val);
-                      if (!isNaN(num) || val === '') setFormData({ ...formData, amount: num });
+                      if (!isNaN(num)) setFormData({ ...formData, amount: num });
                     }}
                     className="w-full px-6 py-4 rounded-[20px] border-2 border-slate-200 font-bold focus:border-slate-950 outline-none"
                     placeholder="0.00"
