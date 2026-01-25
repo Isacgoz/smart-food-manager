@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { PlanType, RestaurantProfile } from '../types';
 import { ChefHat, Eye, EyeOff, Trash2, ArrowRight, Key, Copy, CheckCircle, AlertTriangle } from 'lucide-react';
 import { supabase } from '../services/storage';
+import { logAuditEvent } from '../services/auditLog';
 
 interface SaaSLoginProps {
     onLogin: (profile: RestaurantProfile) => void;
@@ -185,6 +186,14 @@ const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
             if (authError) {
                 const remaining = recordFailedAttempt(email);
                 setAttemptsRemaining(remaining);
+
+                // Audit log: tentative échouée
+                logAuditEvent({
+                    company_id: 'unknown',
+                    event_type: 'LOGIN_FAILED',
+                    event_data: { email: email.toLowerCase(), reason: authError.message }
+                });
+
                 setError(remaining > 0
                     ? `Email ou mot de passe invalide. ${remaining} tentative${remaining > 1 ? 's' : ''} restante${remaining > 1 ? 's' : ''}.`
                     : "Compte temporairement bloqué. Réessayez dans 15 minutes.");
@@ -193,6 +202,12 @@ const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
 
             if (!data.user) {
                 setError('Erreur de connexion.');
+                return;
+            }
+
+            // Vérifier email confirmé (sécurité)
+            if (!data.user.email_confirmed_at) {
+                setError('Veuillez confirmer votre email avant de vous connecter. Consultez votre boîte mail.');
                 return;
             }
 
@@ -275,6 +290,15 @@ const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
 
             // Login réussi - clear rate limiting
             clearLoginAttempts(email);
+
+            // Audit log: connexion réussie
+            logAuditEvent({
+                company_id: profile.id,
+                auth_user_id: data.user.id,
+                event_type: 'LOGIN',
+                event_data: { email: email.toLowerCase() }
+            });
+
             onLogin(profile);
         } catch (err: any) {
             setError(err.message || 'Erreur connexion.');
@@ -433,6 +457,18 @@ const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
             const updatedAccounts = [...accounts, newAccount];
             localStorage.setItem(SAAS_DB_KEY, JSON.stringify(updatedAccounts));
 
+            // Audit log: création de compte
+            logAuditEvent({
+                company_id: data.user.id,
+                auth_user_id: data.user.id,
+                event_type: 'ACCOUNT_CREATED',
+                event_data: {
+                    email: regEmail.toLowerCase(),
+                    restaurant_name: regName.trim(),
+                    plan: regPlan
+                }
+            });
+
             // Afficher le PIN à l'utilisateur avant de continuer
             setGeneratedPin(newAdminPin);
             setPendingProfile(profile);
@@ -471,6 +507,13 @@ const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
                 setError(resetError.message);
                 return;
             }
+
+            // Audit log: demande de réinitialisation
+            logAuditEvent({
+                company_id: 'unknown',
+                event_type: 'PASSWORD_RESET_REQUEST',
+                event_data: { email: forgotEmail.toLowerCase() }
+            });
 
             setResetSent(true);
         } catch (err: any) {
