@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../services/storage';
 import { Eye, EyeOff } from 'lucide-react';
+import { logAuditEvent } from '../services/auditLog';
 
 /**
  * Page de callback après confirmation email Supabase
@@ -40,6 +41,17 @@ export default function AuthCallback() {
       });
 
       if (error) throw error;
+
+      // Audit log: réinitialisation réussie
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        logAuditEvent({
+          company_id: user.id,
+          auth_user_id: user.id,
+          event_type: 'PASSWORD_RESET_SUCCESS',
+          event_data: { email: user.email }
+        });
+      }
 
       setStatus('success');
       setTimeout(() => navigate('/'), 2000);

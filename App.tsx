@@ -29,6 +29,8 @@ import { useAutoLock } from './shared/hooks/useAutoLock';
 import { registerServiceWorker } from './shared/hooks/usePWA';
 import { useMobile } from './shared/hooks/useMobile';
 import { initMonitoring, initWebVitals, setUserContext } from './shared/services/monitoring';
+import { useSessionTimeout } from './shared/hooks/useSessionTimeout';
+import { SessionTimeoutWarning } from './components/SessionTimeoutWarning';
 // Permissions par rôle (Sécurité)
 const ROLE_ROUTES: Record<Role, string[]> = {
   OWNER: ['dashboard', 'kitchen', 'stocks', 'purchases', 'partners', 'menu', 'pos', 'users', 'orders', 'expenses', 'exports', 'settings', 'tables'],
@@ -188,8 +190,37 @@ const App: React.FC = () => {
       <Toaster />
       <NetworkStatus />
       <PWAInstallPrompt />
-      <AppContent />
+      <SessionTimeoutProvider onLogout={handleSaaSLogout}>
+        <AppContent />
+      </SessionTimeoutProvider>
     </AppProvider>
+  );
+};
+
+// Wrapper pour gérer le session timeout restaurant (30min inactivité)
+const SessionTimeoutProvider: React.FC<{ children: React.ReactNode; onLogout: () => void }> = ({ children, onLogout }) => {
+  const { showWarning, extendSession, clearTimers } = useSessionTimeout({
+    onTimeout: () => {
+      clearTimers();
+      onLogout();
+    },
+    onWarning: () => {
+      console.log('[SESSION] Warning: session expires soon');
+    }
+  });
+
+  return (
+    <>
+      {children}
+      <SessionTimeoutWarning
+        show={showWarning}
+        onExtend={extendSession}
+        onLogout={() => {
+          clearTimers();
+          onLogout();
+        }}
+      />
+    </>
   );
 };
 
