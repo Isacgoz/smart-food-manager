@@ -374,6 +374,14 @@ const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
                 return;
             }
 
+            // Vérifier si confirmation email requise
+            if (data.user && !data.user.email_confirmed_at && data.session === null) {
+                setError('');
+                alert(`✅ Compte créé avec succès!\n\n📧 Un email de confirmation a été envoyé à ${regEmail}.\n\nVeuillez cliquer sur le lien dans l'email pour activer votre compte avant de vous connecter.`);
+                setView('LOGIN');
+                return;
+            }
+
             // ÉTAPE 1: Nettoyer puis créer company (évite conflit upsert/RLS)
             await supabase.from('companies').delete().eq('id', data.user.id);
 
