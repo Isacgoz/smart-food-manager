@@ -71,6 +71,10 @@ export interface RestaurantProfile {
   plan: PlanType;
   createdAt: string;
   stockPolicy?: StockPolicy;
+  // Subscription & Trial
+  subscriptionStatus?: 'trial' | 'active' | 'expired' | 'cancelled';
+  trialEndsAt?: string; // ISO date
+  subscriptionEndsAt?: string; // ISO date
   // Infos légales NF525
   legalName?: string;
   siren?: string;

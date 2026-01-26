@@ -34,11 +34,12 @@
       "Bash(du:*)",
       "Bash(cd:*)",
       "Bash(git cherry-pick:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(git checkout:*)"
     ]
   },
+  "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "agentvibes"
-  ],
-  "enableAllProjectMcpServers": true
+  ]
 }

@@ -322,12 +322,17 @@ const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
             }
 
             const stableId = btoa(regEmail.toLowerCase().trim()).replace(/=/g, '');
+            const now = new Date();
+            const trialEnds = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // +30 jours
+
             const profile: RestaurantProfile = {
                 id: stableId,
                 name: regName.trim(),
                 ownerEmail: regEmail.trim(),
                 plan: regPlan,
-                createdAt: new Date().toISOString()
+                createdAt: now.toISOString(),
+                subscriptionStatus: 'trial',
+                trialEndsAt: trialEnds.toISOString()
             };
 
             // Générer PIN sécurisé en mode local aussi
@@ -406,13 +411,18 @@ const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
             }
             console.log('[REGISTER] Company created successfully');
 
-            // ÉTAPE 2: Créer profil restaurant
+            // ÉTAPE 2: Créer profil restaurant avec trial 30 jours
+            const now = new Date();
+            const trialEnds = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // +30 jours
+
             const profile: RestaurantProfile = {
                 id: data.user.id,
                 name: regName.trim(),
                 ownerEmail: regEmail.trim(),
                 plan: regPlan,
-                createdAt: new Date().toISOString()
+                createdAt: now.toISOString(),
+                subscriptionStatus: 'trial',
+                trialEndsAt: trialEnds.toISOString()
             };
 
             // Générer PIN sécurisé pour l'admin du nouveau restaurant
@@ -658,10 +668,75 @@ const SaaSLogin: React.FC<SaaSLoginProps> = ({ onLogin }) => {
 
                         <form onSubmit={view === 'LOGIN' ? handleLogin : handleRegister} className="space-y-5">
                             {view === 'REGISTER' && (
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Nom de l'enseigne</label>
-                                    <input type="text" value={regName} onChange={e => setRegName(e.target.value)} className="w-full bg-slate-800/50 border border-slate-700 rounded-2xl p-4 outline-none focus:border-emerald-500 transition-all text-white font-bold" placeholder="Ex: Food Truck Gourmet" required />
-                                </div>
+                                <>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Nom de l'enseigne</label>
+                                        <input type="text" value={regName} onChange={e => setRegName(e.target.value)} className="w-full bg-slate-800/50 border border-slate-700 rounded-2xl p-4 outline-none focus:border-emerald-500 transition-all text-white font-bold" placeholder="Ex: Food Truck Gourmet" required />
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Choix du plan (1 mois gratuit)</label>
+                                        <div className="grid grid-cols-3 gap-3">
+                                            <button
+                                                type="button"
+                                                onClick={() => setRegPlan('SOLO')}
+                                                className={`p-4 rounded-2xl border-2 transition-all text-left ${
+                                                    regPlan === 'SOLO'
+                                                        ? 'border-emerald-500 bg-emerald-500/20'
+                                                        : 'border-slate-700 bg-slate-800/30 hover:border-slate-600'
+                                                }`}
+                                            >
+                                                <div className="text-white font-black text-lg mb-1">SOLO</div>
+                                                <div className="text-emerald-400 font-black text-sm mb-2">29€/mois</div>
+                                                <div className="text-slate-400 text-xs space-y-1">
+                                                    <div>✓ 1 utilisateur</div>
+                                                    <div>✓ 50 produits</div>
+                                                    <div>✓ Dashboard</div>
+                                                </div>
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                onClick={() => setRegPlan('TEAM')}
+                                                className={`p-4 rounded-2xl border-2 transition-all text-left relative ${
+                                                    regPlan === 'TEAM'
+                                                        ? 'border-blue-500 bg-blue-500/20'
+                                                        : 'border-slate-700 bg-slate-800/30 hover:border-slate-600'
+                                                }`}
+                                            >
+                                                <div className="absolute -top-2 -right-2 bg-blue-500 text-white text-[8px] font-black px-2 py-1 rounded-full">POPULAIRE</div>
+                                                <div className="text-white font-black text-lg mb-1">TEAM</div>
+                                                <div className="text-blue-400 font-black text-sm mb-2">79€/mois</div>
+                                                <div className="text-slate-400 text-xs space-y-1">
+                                                    <div>✓ 5 utilisateurs</div>
+                                                    <div>✓ 200 produits</div>
+                                                    <div>✓ Stats avancées</div>
+                                                </div>
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                onClick={() => setRegPlan('BUSINESS')}
+                                                className={`p-4 rounded-2xl border-2 transition-all text-left ${
+                                                    regPlan === 'BUSINESS'
+                                                        ? 'border-purple-500 bg-purple-500/20'
+                                                        : 'border-slate-700 bg-slate-800/30 hover:border-slate-600'
+                                                }`}
+                                            >
+                                                <div className="text-white font-black text-lg mb-1">BUSINESS</div>
+                                                <div className="text-purple-400 font-black text-sm mb-2">149€/mois</div>
+                                                <div className="text-slate-400 text-xs space-y-1">
+                                                    <div>✓ Illimité</div>
+                                                    <div>✓ API accès</div>
+                                                    <div>✓ Support prioritaire</div>
+                                                </div>
+                                            </button>
+                                        </div>
+                                        <div className="text-center text-emerald-400 text-xs font-bold mt-2">
+                                            🎁 Premier mois offert • Aucune carte requise
+                                        </div>
+                                    </div>
+                                </>
                             )}
                             <div className="space-y-1">
                                 <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Email Gérant</label>
