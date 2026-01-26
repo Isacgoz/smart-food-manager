@@ -55,12 +55,13 @@ export interface Product {
   recipe: RecipeItem[]; 
 }
 
-export interface OrderItem { 
-  productId: string; 
-  quantity: number; 
-  price: number; 
-  name: string; 
-  note?: string; 
+export interface OrderItem {
+  productId: string;
+  quantity: number;
+  price: number;
+  name: string;
+  vatRate?: number; // Taux TVA pour exports comptables
+  note?: string;
 }
 
 export interface RestaurantProfile {

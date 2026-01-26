@@ -61,7 +61,7 @@ const POS: React.FC = () => {
               newCart[existingIndex].quantity += 1;
               return newCart;
           }
-          return [...prev, { productId: product.id, name: product.name, price: product.price, quantity: 1 }];
+          return [...prev, { productId: product.id, name: product.name, price: product.price, vatRate: product.vatRate, quantity: 1 }];
       });
   };
 
