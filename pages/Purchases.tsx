@@ -85,19 +85,45 @@ const Purchases: React.FC = () => {
                          </div>
                          <div className="md:col-span-2">
                             <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Quantité</label>
-                            <input type="number" placeholder="0"
+                            <input type="text" inputMode="decimal" placeholder="0"
                                 className="w-full p-3 border border-slate-200 rounded-xl text-sm bg-white font-black text-slate-950"
-                                value={tempOrderItem.qty || 0}
+                                value={typeof tempOrderItem.qty === 'number' ? tempOrderItem.qty : tempOrderItem.qty || ''}
                                 onFocus={(e) => e.target.select()}
-                                onChange={e => setTempOrderItem({...tempOrderItem, qty: parseFloat(e.target.value)})} />
+                                onChange={e => {
+                                    const val = e.target.value.replace(',', '.');
+                                    if (val === '' || val.endsWith('.') || val.endsWith(',')) {
+                                        setTempOrderItem({...tempOrderItem, qty: val as any});
+                                    } else {
+                                        const num = parseFloat(val);
+                                        if (!isNaN(num)) setTempOrderItem({...tempOrderItem, qty: num});
+                                    }
+                                }}
+                                onBlur={e => {
+                                    const val = e.target.value.replace(',', '.');
+                                    const num = val === '' ? 0 : parseFloat(val);
+                                    if (!isNaN(num)) setTempOrderItem({...tempOrderItem, qty: num});
+                                }} />
                          </div>
                          <div className="md:col-span-3">
                             <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Prix Total HT</label>
-                            <input type="number" placeholder="0.00"
+                            <input type="text" inputMode="decimal" placeholder="0.00"
                                 className="w-full p-3 border border-slate-200 rounded-xl text-sm bg-white font-black text-slate-950"
-                                value={tempOrderItem.cost || 0}
+                                value={typeof tempOrderItem.cost === 'number' ? tempOrderItem.cost : tempOrderItem.cost || ''}
                                 onFocus={(e) => e.target.select()}
-                                onChange={e => setTempOrderItem({...tempOrderItem, cost: parseFloat(e.target.value)})} />
+                                onChange={e => {
+                                    const val = e.target.value.replace(',', '.');
+                                    if (val === '' || val.endsWith('.') || val.endsWith(',')) {
+                                        setTempOrderItem({...tempOrderItem, cost: val as any});
+                                    } else {
+                                        const num = parseFloat(val);
+                                        if (!isNaN(num)) setTempOrderItem({...tempOrderItem, cost: num});
+                                    }
+                                }}
+                                onBlur={e => {
+                                    const val = e.target.value.replace(',', '.');
+                                    const num = val === '' ? 0 : parseFloat(val);
+                                    if (!isNaN(num)) setTempOrderItem({...tempOrderItem, cost: num});
+                                }} />
                          </div>
                          <div className="md:col-span-2">
                             <button

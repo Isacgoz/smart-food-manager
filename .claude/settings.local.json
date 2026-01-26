@@ -33,7 +33,13 @@
       "Bash(wc:*)",
       "Bash(du:*)",
       "Bash(cd:*)",
-      "Bash(xargs cat:*)"
+      "Bash(xargs cat:*)",
+      "Bash(git cherry-pick:*)",
+      "Bash(npx tsc:*)"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "agentvibes"
+  ],
+  "enableAllProjectMcpServers": true
 }

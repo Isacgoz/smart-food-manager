@@ -183,11 +183,14 @@ const Expenses: React.FC = () => {
       {/* MODAL AJOUT/EDIT */}
       {isAdding && (
         <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-xl z-[200] flex items-center justify-center p-6">
-          <div className="bg-white p-12 rounded-[50px] shadow-2xl max-w-2xl w-full">
-            <h3 className="text-3xl font-black text-slate-950 mb-8 tracking-tighter uppercase">
-              {editingId ? 'Modifier' : 'Nouvelle'} Charge
-            </h3>
-            <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="bg-white rounded-[50px] shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+            <div className="p-12 pb-6 flex-shrink-0">
+              <h3 className="text-3xl font-black text-slate-950 mb-8 tracking-tighter uppercase">
+                {editingId ? 'Modifier' : 'Nouvelle'} Charge
+              </h3>
+            </div>
+            <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+              <div className="px-12 overflow-y-auto flex-1 space-y-6">
               <div className="grid grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-black text-slate-700 uppercase tracking-widest mb-2">Catégorie</label>
@@ -233,10 +236,23 @@ const Expenses: React.FC = () => {
                 <div>
                   <label className="block text-sm font-black text-slate-700 uppercase tracking-widest mb-2">Montant (€)</label>
                   <input
-                    type="number"
-                    step="0.01"
-                    value={formData.amount || ''}
-                    onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) })}
+                    type="text"
+                    inputMode="decimal"
+                    value={typeof formData.amount === 'number' ? formData.amount : formData.amount || ''}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(',', '.');
+                      if (val === '' || val.endsWith('.') || val.endsWith(',')) {
+                        setFormData({ ...formData, amount: val as any });
+                      } else {
+                        const num = parseFloat(val);
+                        if (!isNaN(num)) setFormData({ ...formData, amount: num });
+                      }
+                    }}
+                    onBlur={(e) => {
+                      const val = e.target.value.replace(',', '.');
+                      const num = val === '' ? 0 : parseFloat(val);
+                      if (!isNaN(num)) setFormData({ ...formData, amount: num });
+                    }}
                     className="w-full px-6 py-4 rounded-[20px] border-2 border-slate-200 font-bold focus:border-slate-950 outline-none"
                     placeholder="0.00"
                     required
@@ -307,7 +323,8 @@ const Expenses: React.FC = () => {
                 />
               </div>
 
-              <div className="flex gap-4 pt-6">
+              </div>
+              <div className="flex gap-4 pt-6 px-12 pb-12 bg-white rounded-b-[50px] flex-shrink-0 border-t border-slate-100 mt-6">
                 <button
                   type="submit"
                   className="flex-1 bg-slate-950 text-white py-6 rounded-[24px] font-black text-xl hover:bg-black transition-all shadow-2xl uppercase tracking-tighter"
