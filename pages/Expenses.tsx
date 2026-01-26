@@ -183,11 +183,14 @@ const Expenses: React.FC = () => {
       {/* MODAL AJOUT/EDIT */}
       {isAdding && (
         <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-xl z-[200] flex items-center justify-center p-6">
-          <div className="bg-white p-12 rounded-[50px] shadow-2xl max-w-2xl w-full">
-            <h3 className="text-3xl font-black text-slate-950 mb-8 tracking-tighter uppercase">
-              {editingId ? 'Modifier' : 'Nouvelle'} Charge
-            </h3>
-            <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="bg-white rounded-[50px] shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+            <div className="p-12 pb-6 flex-shrink-0">
+              <h3 className="text-3xl font-black text-slate-950 mb-8 tracking-tighter uppercase">
+                {editingId ? 'Modifier' : 'Nouvelle'} Charge
+              </h3>
+            </div>
+            <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+              <div className="px-12 overflow-y-auto flex-1 space-y-6">
               <div className="grid grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-black text-slate-700 uppercase tracking-widest mb-2">Catégorie</label>
@@ -320,7 +323,8 @@ const Expenses: React.FC = () => {
                 />
               </div>
 
-              <div className="flex gap-4 pt-6">
+              </div>
+              <div className="flex gap-4 pt-6 px-12 pb-12 bg-white rounded-b-[50px] flex-shrink-0 border-t border-slate-100 mt-6">
                 <button
                   type="submit"
                   className="flex-1 bg-slate-950 text-white py-6 rounded-[24px] font-black text-xl hover:bg-black transition-all shadow-2xl uppercase tracking-tighter"
