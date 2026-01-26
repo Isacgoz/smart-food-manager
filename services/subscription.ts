@@ -11,7 +11,7 @@ export const PLANS: Record<PlanType, SubscriptionPlan> = {
             products: 50,
             tables: 10,
             hasERP: true,
-            hasStats: false,
+            hasStats: true, // ✅ Dashboard activé pour tests
             supportPriority: 'LOW'
         }
     },
