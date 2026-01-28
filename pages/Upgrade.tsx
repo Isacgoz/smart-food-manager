@@ -1,22 +1,26 @@
 import React, { useState } from 'react';
-import { useStore } from '../storage';
+import { useStore } from '../store';
 import { PlanType } from '../shared/types';
 import { redirectToCheckout } from '../services/stripe';
 import { PLANS } from '../services/subscription';
 
 export const Upgrade: React.FC = () => {
-  const { restaurant } = useStore();
+  const { restaurant, notify } = useStore();
   const [loading, setLoading] = useState<PlanType | null>(null);
 
   const handleUpgrade = async (plan: PlanType) => {
-    if (!restaurant) return;
+    if (!restaurant) {
+      notify('❌ Restaurant non trouvé', 'error');
+      return;
+    }
 
     setLoading(plan);
     try {
       await redirectToCheckout(plan, restaurant.id, restaurant.ownerEmail);
     } catch (error) {
       console.error('Erreur Stripe:', error);
-      alert(error instanceof Error ? error.message : 'Erreur lors de la redirection vers le paiement');
+      const message = error instanceof Error ? error.message : 'Erreur lors de la redirection vers le paiement';
+      notify(`❌ ${message}`, 'error');
       setLoading(null);
     }
   };

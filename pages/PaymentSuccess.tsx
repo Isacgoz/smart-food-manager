@@ -1,33 +1,39 @@
 import React, { useEffect, useState } from 'react';
-import { useStore } from '../storage';
+import { useStore } from '../store';
+import { RestaurantProfile } from '../shared/types';
 
 export const PaymentSuccess: React.FC = () => {
-  const { restaurant, updateRestaurant } = useStore();
+  const { restaurant } = useStore();
   const [processing, setProcessing] = useState(true);
 
   useEffect(() => {
-    // Simuler vérification session Stripe
-    // En production: appeler API backend pour vérifier avec Stripe
+    // Mise à jour du restaurant profile dans localStorage (MODE TEST)
+    // En production: webhook Stripe mettra à jour Supabase
     const params = new URLSearchParams(window.location.search);
     const sessionId = params.get('session_id');
 
     if (sessionId && restaurant) {
-      // Mise à jour immédiate pour TEST (en production: attendre webhook)
       const now = new Date();
       const subscriptionEnds = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 
-      updateRestaurant({
+      const updatedProfile: RestaurantProfile = {
         ...restaurant,
         subscriptionStatus: 'active',
         subscriptionEndsAt: subscriptionEnds.toISOString(),
-        trialEndsAt: undefined, // Fin du trial
-      });
+        trialEndsAt: undefined,
+      };
 
-      setProcessing(false);
+      // Mise à jour localStorage
+      localStorage.setItem('smart_food_last_restaurant', JSON.stringify(updatedProfile));
+
+      // Forcer rechargement après 2 secondes pour appliquer changements
+      setTimeout(() => {
+        setProcessing(false);
+      }, 2000);
     } else {
       setProcessing(false);
     }
-  }, [restaurant, updateRestaurant]);
+  }, [restaurant]);
 
   if (processing) {
     return (
@@ -65,11 +71,18 @@ export const PaymentSuccess: React.FC = () => {
         </div>
 
         <button
-          onClick={() => window.location.href = '/'}
+          onClick={() => {
+            window.location.href = '/';
+            window.location.reload();
+          }}
           className="w-full bg-emerald-500 text-white font-black py-3 rounded-xl hover:bg-emerald-600 transition-all"
         >
           Retour au Dashboard
         </button>
+
+        <p className="text-xs text-slate-500 mt-4 text-center">
+          💡 Mode TEST: Rechargez la page si le badge trial est toujours visible
+        </p>
       </div>
     </div>
   );
