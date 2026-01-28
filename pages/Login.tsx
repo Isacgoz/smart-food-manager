@@ -8,7 +8,7 @@ import { verifyPIN, verifyPINOffline } from '../shared/services/auth';
 const LAST_USER_KEY = 'smart_food_last_staff_login';
 
 const Login: React.FC = () => {
-  const { login, users, logoutRestaurant, restaurant, cashDeclarations, declareCash } = useStore();
+  const { login, users, logoutRestaurant, restaurant, cashDeclarations, declareCash, updateUser } = useStore();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [pin, setPin] = useState('');
   const [error, setError] = useState(false);
@@ -18,6 +18,11 @@ const Login: React.FC = () => {
   // Declaration Step
   const [step, setStep] = useState<'USER' | 'PIN' | 'CASH'>('USER');
   const [cashAmount, setCashAmount] = useState('');
+
+  // PIN oublié
+  const [showForgotPin, setShowForgotPin] = useState(false);
+  const [forgotPinUser, setForgotPinUser] = useState<User | null>(null);
+  const [newPin, setNewPin] = useState<string | null>(null);
 
   useEffect(() => {
       const saved = localStorage.getItem(`${LAST_USER_KEY}_${restaurant.id}`);
@@ -89,6 +94,29 @@ const Login: React.FC = () => {
           logoutRestaurant();
       }
   }
+
+  const handleForgotPin = () => {
+    setShowForgotPin(true);
+    setForgotPinUser(null);
+    setNewPin(null);
+  };
+
+  const generateNewPin = (user: User) => {
+    // Générer nouveau PIN sécurisé 4 chiffres
+    const randomPin = String(Math.floor(1000 + Math.random() * 9000));
+
+    // Mettre à jour l'utilisateur
+    updateUser(user.id, { ...user, pin: randomPin });
+
+    setNewPin(randomPin);
+    setForgotPinUser(user);
+  };
+
+  const closeForgotPinModal = () => {
+    setShowForgotPin(false);
+    setForgotPinUser(null);
+    setNewPin(null);
+  };
 
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 relative overflow-hidden">
@@ -198,6 +226,14 @@ const Login: React.FC = () => {
                             'VÉRIFIER LE PIN'
                         )}
                     </button>
+
+                    <button
+                        type="button"
+                        onClick={handleForgotPin}
+                        className="w-full text-slate-500 hover:text-emerald-400 text-xs font-bold uppercase tracking-wider transition-colors mt-4"
+                    >
+                        Code PIN oublié ?
+                    </button>
                 </form>
             </div>
         )}
@@ -249,6 +285,84 @@ const Login: React.FC = () => {
             </p>
         </div>
       </div>
+
+      {/* Modal PIN oublié */}
+      {showForgotPin && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in">
+          <div className="bg-slate-900 rounded-3xl border border-slate-800 p-8 max-w-md w-full shadow-2xl animate-in zoom-in duration-300">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-black text-white">Réinitialiser PIN</h2>
+              <button
+                onClick={closeForgotPinModal}
+                className="text-slate-500 hover:text-white transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            {!newPin ? (
+              <div>
+                <p className="text-slate-400 text-sm mb-6 font-bold">
+                  Sélectionnez votre nom pour générer un nouveau code PIN :
+                </p>
+
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {users.map(user => (
+                    <button
+                      key={user.id}
+                      onClick={() => generateNewPin(user)}
+                      className="w-full flex items-center gap-4 p-4 bg-slate-800/40 border border-slate-700 rounded-2xl hover:border-emerald-500 hover:bg-slate-800 transition-all group"
+                    >
+                      <div className="w-12 h-12 rounded-xl bg-slate-700 flex items-center justify-center text-white font-black group-hover:bg-emerald-500 transition-all">
+                        {user.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="flex-1 text-left">
+                        <p className="font-black text-white">{user.name}</p>
+                        <p className="text-xs text-slate-500 uppercase tracking-wider">{user.role}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="text-center">
+                <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <CheckCircle size={40} className="text-emerald-500" />
+                </div>
+
+                <h3 className="text-xl font-black text-white mb-2">
+                  Nouveau PIN généré
+                </h3>
+                <p className="text-slate-400 text-sm mb-6">
+                  Pour <span className="text-emerald-400 font-bold">{forgotPinUser?.name}</span>
+                </p>
+
+                <div className="bg-slate-950 border-2 border-emerald-500 rounded-2xl p-8 mb-6">
+                  <p className="text-xs text-slate-500 uppercase tracking-wider mb-2 font-bold">
+                    Nouveau code PIN
+                  </p>
+                  <p className="text-6xl font-black text-emerald-400 tracking-[0.3em] select-all">
+                    {newPin}
+                  </p>
+                </div>
+
+                <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4 mb-6">
+                  <p className="text-xs text-orange-300 font-bold">
+                    ⚠️ Notez ce code ! Vous en aurez besoin pour vous reconnecter.
+                  </p>
+                </div>
+
+                <button
+                  onClick={closeForgotPinModal}
+                  className="w-full bg-emerald-500 text-white py-4 rounded-2xl font-black uppercase tracking-wider hover:bg-emerald-600 transition-all"
+                >
+                  J'ai noté le code
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
