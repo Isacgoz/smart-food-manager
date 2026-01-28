@@ -142,6 +142,18 @@ export interface Notification {
   type: 'success' | 'error' | 'warning' | 'info';
 }
 
+export interface PinResetRequest {
+  id: string;
+  userId: string;
+  userName: string;
+  userRole: Role;
+  requestedAt: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  approvedBy?: string;
+  approvedAt?: string;
+  newPin?: string;
+}
+
 export interface StockMovement {
   id: string;
   ingredientId: string;

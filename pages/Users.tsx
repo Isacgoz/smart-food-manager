@@ -2,11 +2,11 @@
 import React, { useState } from 'react';
 import { useStore } from '../store';
 import { User } from '../shared/types';
-import { Edit2, Trash2, X, ShieldAlert, ShieldCheck } from 'lucide-react';
+import { Edit2, Trash2, X, ShieldAlert, ShieldCheck, Bell, Check, XCircle, Clock } from 'lucide-react';
 import { useToast } from '../shared/hooks/useToast';
 
 const Users: React.FC = () => {
-    const { users, currentUser, addUser, updateUser, deleteUser } = useStore();
+    const { users, currentUser, addUser, updateUser, deleteUser, pinResetRequests, approvePinResetRequest, rejectPinResetRequest } = useStore();
     const { notify } = useToast();
 
     // Form State
@@ -54,9 +54,78 @@ const Users: React.FC = () => {
         }
     };
 
+    const pendingRequests = pinResetRequests.filter(r => r.status === 'PENDING');
+
     return (
         <div className="max-w-6xl mx-auto space-y-12 pb-10">
-            
+
+            {/* --- PIN RESET REQUESTS --- */}
+            {pendingRequests.length > 0 && (
+                <div>
+                    <h2 className="text-2xl font-bold mb-6 text-slate-900 flex items-center gap-2">
+                        <Bell className="text-orange-600"/> Demandes de Réinitialisation PIN
+                        <span className="text-sm bg-orange-500 text-white px-3 py-1 rounded-full font-black ml-2">
+                            {pendingRequests.length}
+                        </span>
+                    </h2>
+
+                    <div className="bg-white rounded-xl border border-orange-200 shadow-sm overflow-hidden">
+                        <div className="p-4 bg-orange-50 border-b border-orange-200 flex items-center gap-2 text-sm text-orange-700 font-bold">
+                            <Bell size={16} />
+                            <span>Action requise : Validez ou refusez les demandes ci-dessous</span>
+                        </div>
+
+                        <div className="divide-y divide-gray-100">
+                            {pendingRequests.map(request => (
+                                <div key={request.id} className="p-6 hover:bg-slate-50 transition-colors">
+                                    <div className="flex items-center justify-between gap-4">
+                                        <div className="flex items-center gap-4 flex-1">
+                                            <div className="w-14 h-14 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-600 font-black text-xl">
+                                                {request.userName.charAt(0).toUpperCase()}
+                                            </div>
+                                            <div>
+                                                <p className="font-black text-slate-900 text-lg">{request.userName}</p>
+                                                <p className="text-xs text-slate-500 uppercase tracking-wider flex items-center gap-2 mt-1">
+                                                    <span className="px-2 py-0.5 bg-slate-100 rounded font-bold">{request.userRole}</span>
+                                                    <Clock size={12} />
+                                                    {new Date(request.requestedAt).toLocaleString('fr-FR', {
+                                                        day: '2-digit',
+                                                        month: '2-digit',
+                                                        hour: '2-digit',
+                                                        minute: '2-digit'
+                                                    })}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex gap-3">
+                                            <button
+                                                onClick={() => {
+                                                    approvePinResetRequest(request.id);
+                                                }}
+                                                className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold transition-all shadow-md active:scale-95"
+                                            >
+                                                <Check size={18} />
+                                                Approuver
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    rejectPinResetRequest(request.id);
+                                                }}
+                                                className="flex items-center gap-2 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold transition-all shadow-md active:scale-95"
+                                            >
+                                                <XCircle size={18} />
+                                                Refuser
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* --- TEAM MANAGEMENT --- */}
             <div>
                 <h2 className="text-2xl font-bold mb-6 text-slate-900 flex items-center gap-2">

@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import {
   User, Order, OrderItem, KitchenStatus, RestaurantProfile, CashDeclaration,
-  Product, Ingredient, Partner, SupplierOrder, StockMovement, Notification, Table, Expense
+  Product, Ingredient, Partner, SupplierOrder, StockMovement, Notification, Table, Expense, PinResetRequest
 } from './shared/types';
 import { loadState, saveState, supabase } from './services/storage';
 import { hashUserPIN } from './shared/services/auth';
@@ -37,8 +37,9 @@ interface AppContextType {
   notifications: Notification[];
   cashDeclarations: CashDeclaration[];
   expenses: Expense[];
+  pinResetRequests: PinResetRequest[];
   isLoading: boolean;
-  
+
   login: (user: User) => void;
   logout: () => void;
   logoutRestaurant: () => void;
@@ -48,7 +49,7 @@ interface AppContextType {
   declareCash: (userId: string, amount: number, type: 'OPENING' | 'CLOSING') => void;
   notify: (message: string, type?: Notification['type']) => void;
   removeNotification: (id: string) => void;
-  
+
   addUser: (u: any) => void;
   updateUser: (id: string, u: any) => void;
   deleteUser: (id: string) => void;
@@ -66,6 +67,9 @@ interface AppContextType {
   addExpense: (e: Omit<Expense, 'id' | 'createdAt'>) => void;
   updateExpense: (id: string, e: Partial<Expense>) => void;
   deleteExpense: (id: string) => void;
+  createPinResetRequest: (userId: string) => void;
+  approvePinResetRequest: (requestId: string) => void;
+  rejectPinResetRequest: (requestId: string) => void;
   exportData: () => string;
   importData: (json: string) => boolean;
 }
@@ -75,7 +79,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export const AppProvider: React.FC<{ children: React.ReactNode, restaurant: RestaurantProfile, onRestaurantLogout: () => void }> = ({ children, restaurant, onRestaurantLogout }) => {
   const { notify: toast } = useToast();
   const [data, setData] = useState({
-    users: [] as User[], // Chargé depuis Supabase - plus de PIN hardcodé
+    users: [] as User[],
     orders: [] as Order[],
     ingredients: [] as Ingredient[],
     products: [] as Product[],
@@ -85,6 +89,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode, restaurant: Rest
     movements: [] as StockMovement[],
     cashDeclarations: [] as CashDeclaration[],
     expenses: [] as Expense[],
+    pinResetRequests: [] as PinResetRequest[],
     _lastUpdatedAt: Date.now()
   });
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -406,6 +411,61 @@ export const AppProvider: React.FC<{ children: React.ReactNode, restaurant: Rest
     addExpense: (expense: Omit<Expense, 'id' | 'createdAt'>) => setData(p => ({...p, _lastUpdatedAt: Date.now(), expenses: [...p.expenses, { ...expense, id: generateId(), createdAt: new Date().toISOString() }]})),
     updateExpense: (id: string, expense: Partial<Expense>) => setData(p => ({...p, _lastUpdatedAt: Date.now(), expenses: p.expenses.map(e => e.id === id ? {...e, ...expense} : e)})),
     deleteExpense: (id: string) => setData(p => ({...p, _lastUpdatedAt: Date.now(), expenses: p.expenses.filter(e => e.id !== id)})),
+    createPinResetRequest: (userId: string) => {
+      const user = data.users.find(u => u.id === userId);
+      if (!user) return;
+
+      const request: PinResetRequest = {
+        id: generateId(),
+        userId,
+        userName: user.name,
+        userRole: user.role,
+        requestedAt: new Date().toISOString(),
+        status: 'PENDING'
+      };
+
+      setData(p => ({...p, _lastUpdatedAt: Date.now(), pinResetRequests: [...p.pinResetRequests, request]}));
+      notify(`🔔 ${user.name} demande une réinitialisation de PIN`, 'warning');
+    },
+    approvePinResetRequest: async (requestId: string) => {
+      const request = data.pinResetRequests.find(r => r.id === requestId);
+      if (!request || request.status !== 'PENDING') return;
+
+      const newPin = generateSecurePin().slice(0, 4);
+      const user = data.users.find(u => u.id === request.userId);
+      if (!user) return;
+
+      const pinHash = await hashUserPIN(newPin);
+
+      setData(p => ({
+        ...p,
+        _lastUpdatedAt: Date.now(),
+        pinResetRequests: p.pinResetRequests.map(r =>
+          r.id === requestId
+            ? {...r, status: 'APPROVED', approvedBy: currentUser?.id, approvedAt: new Date().toISOString(), newPin}
+            : r
+        ),
+        users: p.users.map(u => u.id === request.userId ? {...u, pin: newPin, pinHash} : u)
+      }));
+
+      notify(`✅ Nouveau PIN généré pour ${request.userName}: ${newPin}`, 'success');
+    },
+    rejectPinResetRequest: (requestId: string) => {
+      const request = data.pinResetRequests.find(r => r.id === requestId);
+      if (!request || request.status !== 'PENDING') return;
+
+      setData(p => ({
+        ...p,
+        _lastUpdatedAt: Date.now(),
+        pinResetRequests: p.pinResetRequests.map(r =>
+          r.id === requestId
+            ? {...r, status: 'REJECTED', approvedBy: currentUser?.id, approvedAt: new Date().toISOString()}
+            : r
+        )
+      }));
+
+      notify(`❌ Demande de réinitialisation refusée pour ${request.userName}`, 'info');
+    },
     receiveSupplierOrder: (id: string) => {
       setData(p => {
         const order = p.supplierOrders.find(o => o.id === id);

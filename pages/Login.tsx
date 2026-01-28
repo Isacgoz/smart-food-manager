@@ -1,14 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../store';
-import { Lock, User as UserIcon, ArrowLeft, LogOut, Clock, Banknote, CheckCircle, Loader2 } from 'lucide-react';
+import { Lock, User as UserIcon, ArrowLeft, LogOut, Clock, Banknote, CheckCircle, Loader2, X, Bell } from 'lucide-react';
 import { User } from '../shared/types';
 import { verifyPIN, verifyPINOffline } from '../shared/services/auth';
 
 const LAST_USER_KEY = 'smart_food_last_staff_login';
 
 const Login: React.FC = () => {
-  const { login, users, logoutRestaurant, restaurant, cashDeclarations, declareCash, updateUser } = useStore();
+  const { login, users, logoutRestaurant, restaurant, cashDeclarations, declareCash, createPinResetRequest } = useStore();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [pin, setPin] = useState('');
   const [error, setError] = useState(false);
@@ -21,8 +21,7 @@ const Login: React.FC = () => {
 
   // PIN oublié
   const [showForgotPin, setShowForgotPin] = useState(false);
-  const [forgotPinUser, setForgotPinUser] = useState<User | null>(null);
-  const [newPin, setNewPin] = useState<string | null>(null);
+  const [requestSent, setRequestSent] = useState(false);
 
   useEffect(() => {
       const saved = localStorage.getItem(`${LAST_USER_KEY}_${restaurant.id}`);
@@ -97,25 +96,17 @@ const Login: React.FC = () => {
 
   const handleForgotPin = () => {
     setShowForgotPin(true);
-    setForgotPinUser(null);
-    setNewPin(null);
+    setRequestSent(false);
   };
 
-  const generateNewPin = (user: User) => {
-    // Générer nouveau PIN sécurisé 4 chiffres
-    const randomPin = String(Math.floor(1000 + Math.random() * 9000));
-
-    // Mettre à jour l'utilisateur
-    updateUser(user.id, { ...user, pin: randomPin });
-
-    setNewPin(randomPin);
-    setForgotPinUser(user);
+  const handleRequestPinReset = (user: User) => {
+    createPinResetRequest(user.id);
+    setRequestSent(true);
   };
 
   const closeForgotPinModal = () => {
     setShowForgotPin(false);
-    setForgotPinUser(null);
-    setNewPin(null);
+    setRequestSent(false);
   };
 
   return (
@@ -300,17 +291,24 @@ const Login: React.FC = () => {
               </button>
             </div>
 
-            {!newPin ? (
+            {!requestSent ? (
               <div>
+                <div className="bg-blue-500/10 border border-blue-500/30 rounded-2xl p-4 mb-6 flex items-start gap-3">
+                  <Bell className="text-blue-400 mt-1 flex-shrink-0" size={20} />
+                  <p className="text-blue-300 text-sm font-bold">
+                    Une notification sera envoyée au gérant qui validera votre demande et générera un nouveau PIN.
+                  </p>
+                </div>
+
                 <p className="text-slate-400 text-sm mb-6 font-bold">
-                  Sélectionnez votre nom pour générer un nouveau code PIN :
+                  Sélectionnez votre nom pour demander la réinitialisation :
                 </p>
 
                 <div className="space-y-3 max-h-96 overflow-y-auto">
                   {users.map(user => (
                     <button
                       key={user.id}
-                      onClick={() => generateNewPin(user)}
+                      onClick={() => handleRequestPinReset(user)}
                       className="w-full flex items-center gap-4 p-4 bg-slate-800/40 border border-slate-700 rounded-2xl hover:border-emerald-500 hover:bg-slate-800 transition-all group"
                     >
                       <div className="w-12 h-12 rounded-xl bg-slate-700 flex items-center justify-center text-white font-black group-hover:bg-emerald-500 transition-all">
@@ -331,24 +329,15 @@ const Login: React.FC = () => {
                 </div>
 
                 <h3 className="text-xl font-black text-white mb-2">
-                  Nouveau PIN généré
+                  Demande envoyée
                 </h3>
                 <p className="text-slate-400 text-sm mb-6">
-                  Pour <span className="text-emerald-400 font-bold">{forgotPinUser?.name}</span>
+                  Le gérant a été notifié de votre demande de réinitialisation de PIN.
                 </p>
-
-                <div className="bg-slate-950 border-2 border-emerald-500 rounded-2xl p-8 mb-6">
-                  <p className="text-xs text-slate-500 uppercase tracking-wider mb-2 font-bold">
-                    Nouveau code PIN
-                  </p>
-                  <p className="text-6xl font-black text-emerald-400 tracking-[0.3em] select-all">
-                    {newPin}
-                  </p>
-                </div>
 
                 <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4 mb-6">
                   <p className="text-xs text-orange-300 font-bold">
-                    ⚠️ Notez ce code ! Vous en aurez besoin pour vous reconnecter.
+                    ℹ️ Veuillez contacter le gérant qui vous communiquera votre nouveau code PIN.
                   </p>
                 </div>
 
@@ -356,7 +345,7 @@ const Login: React.FC = () => {
                   onClick={closeForgotPinModal}
                   className="w-full bg-emerald-500 text-white py-4 rounded-2xl font-black uppercase tracking-wider hover:bg-emerald-600 transition-all"
                 >
-                  J'ai noté le code
+                  Compris
                 </button>
               </div>
             )}
