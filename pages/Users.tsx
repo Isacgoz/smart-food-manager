@@ -12,6 +12,7 @@ const Users: React.FC = () => {
     // Form State
     const [formData, setFormData] = useState({ name: '', pin: '', role: 'SERVER' as User['role'] });
     const [editingId, setEditingId] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const resetForm = () => {
         setFormData({ name: '', pin: '', role: 'SERVER' });
@@ -23,7 +24,9 @@ const Users: React.FC = () => {
         setEditingId(user.id);
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
+        if (isSubmitting) return;
+
         if (!formData.name) {
             notify("Le nom est requis.", "error");
             return;
@@ -33,14 +36,19 @@ const Users: React.FC = () => {
             return;
         }
 
-        if (editingId) {
-            updateUser(editingId, formData);
-            notify("Utilisateur modifié avec succès", "success");
-        } else {
-            addUser(formData);
-            notify("Utilisateur ajouté avec succès", "success");
+        setIsSubmitting(true);
+        try {
+            if (editingId) {
+                await updateUser(editingId, formData);
+                notify("Utilisateur modifié avec succès", "success");
+            } else {
+                await addUser(formData);
+                notify("Utilisateur ajouté avec succès", "success");
+            }
+            resetForm();
+        } finally {
+            setIsSubmitting(false);
         }
-        resetForm();
     };
 
     const handleDelete = (id: string) => {
@@ -171,8 +179,12 @@ const Users: React.FC = () => {
                                 </select>
                             </div>
 
-                            <button onClick={handleSubmit} className={`w-full text-white py-3 rounded-lg font-bold transition-colors shadow-md ${editingId ? 'bg-blue-600 hover:bg-blue-700' : 'bg-emerald-600 hover:bg-emerald-700'}`}>
-                                {editingId ? 'Mettre à jour' : 'Créer Utilisateur'}
+                            <button
+                                onClick={handleSubmit}
+                                disabled={isSubmitting}
+                                className={`w-full text-white py-3 rounded-lg font-bold transition-colors shadow-md ${editingId ? 'bg-blue-600 hover:bg-blue-700' : 'bg-emerald-600 hover:bg-emerald-700'} disabled:opacity-50 disabled:cursor-not-allowed`}
+                            >
+                                {isSubmitting ? 'Traitement...' : (editingId ? 'Mettre à jour' : 'Créer Utilisateur')}
                             </button>
                         </div>
                     </div>
