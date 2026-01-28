@@ -448,6 +448,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode, restaurant: Rest
         users: p.users.map(u => u.id === request.userId ? {...u, pin: newPin, pinHash} : u)
       }));
 
+      // Envoi email si l'utilisateur a un email configuré
+      if (user.email && supabase) {
+        try {
+          const { error } = await supabase.functions.invoke('send-pin-reset', {
+            body: { email: user.email, userName: user.name, newPin, restaurantName: restaurant.name }
+          });
+          if (!error) {
+            notify(`✅ Nouveau PIN envoyé par email à ${user.email}`, 'success');
+            return;
+          }
+        } catch (e) {
+          // Fallback: afficher PIN au gérant
+        }
+      }
+
       notify(`✅ Nouveau PIN généré pour ${request.userName}: ${newPin}`, 'success');
     },
     rejectPinResetRequest: (requestId: string) => {

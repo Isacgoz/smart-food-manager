@@ -10,17 +10,17 @@ const Users: React.FC = () => {
     const { notify } = useToast();
 
     // Form State
-    const [formData, setFormData] = useState({ name: '', pin: '', role: 'SERVER' as User['role'] });
+    const [formData, setFormData] = useState({ name: '', pin: '', role: 'SERVER' as User['role'], email: '' });
     const [editingId, setEditingId] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const resetForm = () => {
-        setFormData({ name: '', pin: '', role: 'SERVER' });
+        setFormData({ name: '', pin: '', role: 'SERVER', email: '' });
         setEditingId(null);
     };
 
     const handleEdit = (user: User) => {
-        setFormData({ name: user.name, pin: user.pin, role: user.role });
+        setFormData({ name: user.name, pin: user.pin, role: user.role, email: user.email || '' });
         setEditingId(user.id);
     };
 
@@ -169,6 +169,13 @@ const Users: React.FC = () => {
                             </div>
 
                             <div>
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Email (optionnel)</label>
+                                <input type="email" placeholder="Ex: jean@email.com" className="w-full p-2 border rounded text-slate-900"
+                                    value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
+                                <p className="text-xs text-gray-500 mt-1">Pour recevoir le PIN par email en cas de réinitialisation</p>
+                            </div>
+
+                            <div>
                                 <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Rôle (Droits d'accès)</label>
                                 <select className="w-full p-2 border rounded bg-white text-slate-900"
                                     value={formData.role} onChange={e => setFormData({...formData, role: e.target.value as any})}>
@@ -199,6 +206,7 @@ const Users: React.FC = () => {
                             <thead className="bg-white border-b border-gray-100">
                                 <tr>
                                     <th className="p-4 font-bold text-slate-700">Nom</th>
+                                    <th className="p-4 font-bold text-slate-700">Email</th>
                                     <th className="p-4 font-bold text-slate-700">Rôle</th>
                                     <th className="p-4 font-bold text-slate-700">PIN</th>
                                     <th className="p-4 font-bold text-slate-700 text-right">Actions</th>
@@ -208,6 +216,7 @@ const Users: React.FC = () => {
                                 {users.map(u => (
                                     <tr key={u.id} className={`hover:bg-slate-50 transition-colors ${editingId === u.id ? 'bg-blue-50' : ''}`}>
                                         <td className="p-4 font-medium text-slate-900">{u.name}</td>
+                                        <td className="p-4 text-sm text-slate-500">{u.email || '—'}</td>
                                         <td className="p-4">
                                             <span className={`px-2 py-1 rounded text-xs font-bold 
                                                 ${u.role === 'OWNER' ? 'bg-purple-100 text-purple-700' : 

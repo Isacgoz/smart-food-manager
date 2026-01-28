@@ -337,7 +337,7 @@ const Login: React.FC = () => {
 
                 <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4 mb-6">
                   <p className="text-xs text-orange-300 font-bold">
-                    ℹ️ Veuillez contacter le gérant qui vous communiquera votre nouveau code PIN.
+                    ℹ️ Si un email est configuré pour votre compte, le nouveau PIN vous sera envoyé par email. Sinon, contactez le gérant.
                   </p>
                 </div>
 

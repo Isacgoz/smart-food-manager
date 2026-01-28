@@ -12,6 +12,7 @@ export interface User {
   pin: string; // @deprecated: utilisé uniquement pour compatibilité
   pinHash?: string; // Hash SHA-256 pour vérification offline
   role: Role;
+  email?: string;
 }
 
 export interface Order {
