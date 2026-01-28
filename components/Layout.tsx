@@ -68,6 +68,22 @@ const Layout: React.FC<LayoutProps> = ({ children, currentView, setView }) => {
           <div className="flex flex-col bg-slate-900/50 p-4 rounded-2xl border border-slate-800">
               <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] leading-none mb-1">Etablissement</span>
               <span className="text-sm font-black text-white truncate uppercase tracking-tight">{restaurant.name}</span>
+              {restaurant.subscriptionStatus === 'trial' && restaurant.trialEndsAt && (() => {
+                const daysLeft = Math.ceil((new Date(restaurant.trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+                return (
+                  <>
+                    <div className="mt-2 bg-emerald-500/20 border border-emerald-500/50 rounded-lg px-2 py-1 text-[10px] font-black text-emerald-400 uppercase tracking-wider">
+                      🎁 Essai gratuit: {daysLeft}j restants
+                    </div>
+                    <button
+                      onClick={() => setView('upgrade')}
+                      className="mt-2 w-full bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-black py-2 rounded-lg text-[10px] uppercase tracking-wider hover:from-emerald-600 hover:to-emerald-700 transition-all"
+                    >
+                      ⚡ Passer Premium
+                    </button>
+                  </>
+                );
+              })()}
           </div>
         </div>
 

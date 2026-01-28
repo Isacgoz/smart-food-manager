@@ -48,7 +48,7 @@ export const generateSalesFECLines = (
   // Grouper les ventes par jour
   const salesByDay = new Map<string, Order[]>();
   orders.forEach(order => {
-    const date = new Date(order.createdAt).toISOString().split('T')[0];
+    const date = new Date(order.createdAt || order.date).toISOString().split('T')[0];
     if (!salesByDay.has(date)) {
       salesByDay.set(date, []);
     }
@@ -348,7 +348,7 @@ export const generateFECExport = async (
 ): Promise<string> => {
   // Filtrer par date
   const filteredOrders = orders.filter(order => {
-    const orderDate = new Date(order.createdAt);
+    const orderDate = new Date(order.createdAt || order.date);
     return orderDate >= options.startDate && orderDate <= options.endDate;
   });
 

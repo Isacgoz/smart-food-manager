@@ -62,7 +62,7 @@ export const calculateCA3Data = (
 
   // Filtrer les commandes par période
   const filteredOrders = orders.filter(order => {
-    const orderDate = new Date(order.createdAt);
+    const orderDate = new Date(order.createdAt || order.date);
     return orderDate >= options.startDate && orderDate <= options.endDate;
   });
 

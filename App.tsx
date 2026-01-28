@@ -22,6 +22,9 @@ import Tables from './pages/Tables';
 import Exports from './pages/Exports';
 import Settings from './pages/Settings';
 import AuthCallback from './pages/AuthCallback';
+import { PaymentSuccess } from './pages/PaymentSuccess';
+import { PaymentCancel } from './pages/PaymentCancel';
+import { Upgrade } from './pages/Upgrade';
 import { RestaurantProfile, Role } from './shared/types';
 import { hasFeature } from './services/subscription';
 import { Lock } from 'lucide-react';
@@ -120,6 +123,7 @@ const AppContent: React.FC = () => {
       case 'users': return <Users />;
       case 'orders': return <Orders />;
       case 'tables': return <Tables />;
+      case 'upgrade': return <Upgrade />;
       default: return <div className="text-center p-10 font-black">MODULE EN CONSTRUCTION</div>;
     }
   };
@@ -176,9 +180,17 @@ const App: React.FC = () => {
 
   if (loading) return null;
 
-  // Gérer callback Supabase Auth (confirmation email)
+  // Gérer routes spéciales (auth, payment)
   if (window.location.pathname === '/auth/callback') {
       return <AuthCallback />;
+  }
+
+  if (window.location.pathname === '/payment-success') {
+      return <PaymentSuccess />;
+  }
+
+  if (window.location.pathname === '/payment-cancel') {
+      return <PaymentCancel />;
   }
 
   if (!restaurantProfile) {

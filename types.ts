@@ -59,12 +59,13 @@ export interface Product {
   recipe: RecipeItem[]; 
 }
 
-export interface OrderItem { 
-  productId: string; 
-  quantity: number; 
-  price: number; 
-  name: string; 
-  note?: string; 
+export interface OrderItem {
+  productId: string;
+  quantity: number;
+  price: number;
+  name: string;
+  vatRate?: number; // Taux TVA pour exports comptables
+  note?: string;
 }
 
 export interface RestaurantProfile {
@@ -73,6 +74,10 @@ export interface RestaurantProfile {
   ownerEmail: string;
   plan: PlanType;
   createdAt: string;
+  // Subscription & Trial
+  subscriptionStatus?: 'trial' | 'active' | 'expired' | 'cancelled';
+  trialEndsAt?: string; // ISO date
+  subscriptionEndsAt?: string; // ISO date
   // Infos légales NF525
   legalName?: string;
   siren?: string;

@@ -27,9 +27,7 @@ import {
 } from '../services/accounting-expenses';
 
 const Exports: React.FC = () => {
-  const { orders, expenses, currentUser, restaurants } = useStore();
-  
-  const restaurant = restaurants?.find(r => r.id === currentUser?.restaurantId);
+  const { orders, expenses, restaurant } = useStore();
   
   // États pour les filtres de date
   const [startDate, setStartDate] = useState(() => {
@@ -56,9 +54,9 @@ const Exports: React.FC = () => {
   const periodStats = useMemo(() => {
     const start = new Date(startDate);
     const end = new Date(endDate);
-    
+
     const filteredOrders = orders.filter(order => {
-      const orderDate = new Date(order.createdAt);
+      const orderDate = new Date(order.createdAt || order.date);
       return orderDate >= start && orderDate <= end && order.status === 'COMPLETED';
     });
     

@@ -12,6 +12,7 @@ export interface User {
   pin: string; // @deprecated: utilisé uniquement pour compatibilité
   pinHash?: string; // Hash SHA-256 pour vérification offline
   role: Role;
+  email?: string;
 }
 
 export interface Order {
@@ -55,12 +56,13 @@ export interface Product {
   recipe: RecipeItem[]; 
 }
 
-export interface OrderItem { 
-  productId: string; 
-  quantity: number; 
-  price: number; 
-  name: string; 
-  note?: string; 
+export interface OrderItem {
+  productId: string;
+  quantity: number;
+  price: number;
+  name: string;
+  vatRate?: number; // Taux TVA pour exports comptables
+  note?: string;
 }
 
 export interface RestaurantProfile {
@@ -70,6 +72,10 @@ export interface RestaurantProfile {
   plan: PlanType;
   createdAt: string;
   stockPolicy?: StockPolicy;
+  // Subscription & Trial
+  subscriptionStatus?: 'trial' | 'active' | 'expired' | 'cancelled';
+  trialEndsAt?: string; // ISO date
+  subscriptionEndsAt?: string; // ISO date
   // Infos légales NF525
   legalName?: string;
   siren?: string;
@@ -135,6 +141,18 @@ export interface Notification {
   id: string;
   message: string;
   type: 'success' | 'error' | 'warning' | 'info';
+}
+
+export interface PinResetRequest {
+  id: string;
+  userId: string;
+  userName: string;
+  userRole: Role;
+  requestedAt: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  approvedBy?: string;
+  approvedAt?: string;
+  newPin?: string;
 }
 
 export interface StockMovement {

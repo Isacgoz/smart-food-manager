@@ -1,14 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../store';
-import { Lock, User as UserIcon, ArrowLeft, LogOut, Clock, Banknote, CheckCircle, Loader2 } from 'lucide-react';
+import { Lock, User as UserIcon, ArrowLeft, LogOut, Clock, Banknote, CheckCircle, Loader2, X, Bell } from 'lucide-react';
 import { User } from '../shared/types';
 import { verifyPIN, verifyPINOffline } from '../shared/services/auth';
 
 const LAST_USER_KEY = 'smart_food_last_staff_login';
 
 const Login: React.FC = () => {
-  const { login, users, logoutRestaurant, restaurant, cashDeclarations, declareCash } = useStore();
+  const { login, users, logoutRestaurant, restaurant, cashDeclarations, declareCash, createPinResetRequest } = useStore();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [pin, setPin] = useState('');
   const [error, setError] = useState(false);
@@ -18,6 +18,10 @@ const Login: React.FC = () => {
   // Declaration Step
   const [step, setStep] = useState<'USER' | 'PIN' | 'CASH'>('USER');
   const [cashAmount, setCashAmount] = useState('');
+
+  // PIN oublié
+  const [showForgotPin, setShowForgotPin] = useState(false);
+  const [requestSent, setRequestSent] = useState(false);
 
   useEffect(() => {
       const saved = localStorage.getItem(`${LAST_USER_KEY}_${restaurant.id}`);
@@ -89,6 +93,21 @@ const Login: React.FC = () => {
           logoutRestaurant();
       }
   }
+
+  const handleForgotPin = () => {
+    setShowForgotPin(true);
+    setRequestSent(false);
+  };
+
+  const handleRequestPinReset = (user: User) => {
+    createPinResetRequest(user.id);
+    setRequestSent(true);
+  };
+
+  const closeForgotPinModal = () => {
+    setShowForgotPin(false);
+    setRequestSent(false);
+  };
 
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 relative overflow-hidden">
@@ -198,6 +217,14 @@ const Login: React.FC = () => {
                             'VÉRIFIER LE PIN'
                         )}
                     </button>
+
+                    <button
+                        type="button"
+                        onClick={handleForgotPin}
+                        className="w-full text-slate-500 hover:text-emerald-400 text-xs font-bold uppercase tracking-wider transition-colors mt-4"
+                    >
+                        Code PIN oublié ?
+                    </button>
                 </form>
             </div>
         )}
@@ -249,6 +276,82 @@ const Login: React.FC = () => {
             </p>
         </div>
       </div>
+
+      {/* Modal PIN oublié */}
+      {showForgotPin && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in">
+          <div className="bg-slate-900 rounded-3xl border border-slate-800 p-8 max-w-md w-full shadow-2xl animate-in zoom-in duration-300">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-black text-white">Réinitialiser PIN</h2>
+              <button
+                onClick={closeForgotPinModal}
+                className="text-slate-500 hover:text-white transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            {!requestSent ? (
+              <div>
+                <div className="bg-blue-500/10 border border-blue-500/30 rounded-2xl p-4 mb-6 flex items-start gap-3">
+                  <Bell className="text-blue-400 mt-1 flex-shrink-0" size={20} />
+                  <p className="text-blue-300 text-sm font-bold">
+                    Une notification sera envoyée au gérant qui validera votre demande et générera un nouveau PIN.
+                  </p>
+                </div>
+
+                <p className="text-slate-400 text-sm mb-6 font-bold">
+                  Sélectionnez votre nom pour demander la réinitialisation :
+                </p>
+
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {users.map(user => (
+                    <button
+                      key={user.id}
+                      onClick={() => handleRequestPinReset(user)}
+                      className="w-full flex items-center gap-4 p-4 bg-slate-800/40 border border-slate-700 rounded-2xl hover:border-emerald-500 hover:bg-slate-800 transition-all group"
+                    >
+                      <div className="w-12 h-12 rounded-xl bg-slate-700 flex items-center justify-center text-white font-black group-hover:bg-emerald-500 transition-all">
+                        {user.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="flex-1 text-left">
+                        <p className="font-black text-white">{user.name}</p>
+                        <p className="text-xs text-slate-500 uppercase tracking-wider">{user.role}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="text-center">
+                <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <CheckCircle size={40} className="text-emerald-500" />
+                </div>
+
+                <h3 className="text-xl font-black text-white mb-2">
+                  Demande envoyée
+                </h3>
+                <p className="text-slate-400 text-sm mb-6">
+                  Le gérant a été notifié de votre demande de réinitialisation de PIN.
+                </p>
+
+                <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4 mb-6">
+                  <p className="text-xs text-orange-300 font-bold">
+                    ℹ️ Si un email est configuré pour votre compte, le nouveau PIN vous sera envoyé par email. Sinon, contactez le gérant.
+                  </p>
+                </div>
+
+                <button
+                  onClick={closeForgotPinModal}
+                  className="w-full bg-emerald-500 text-white py-4 rounded-2xl font-black uppercase tracking-wider hover:bg-emerald-600 transition-all"
+                >
+                  Compris
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
