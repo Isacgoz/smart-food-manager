@@ -451,16 +451,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode, restaurant: Rest
       // Envoi email si l'utilisateur a un email configuré
       if (user.email && supabase) {
         try {
-          const { error } = await supabase.functions.invoke('send-pin-reset', {
+          console.log('[PIN-RESET] Calling Edge Function for', user.email);
+          const { data: resData, error } = await supabase.functions.invoke('send-pin-reset', {
             body: { email: user.email, userName: user.name, newPin, restaurantName: restaurant.name }
           });
+          console.log('[PIN-RESET] Response:', { resData, error });
           if (!error) {
             notify(`✅ Nouveau PIN envoyé par email à ${user.email}`, 'success');
             return;
           }
+          console.error('[PIN-RESET] Edge Function error:', error);
         } catch (e) {
-          // Fallback: afficher PIN au gérant
+          console.error('[PIN-RESET] Exception:', e);
         }
+      } else {
+        console.log('[PIN-RESET] Skip email: email=', user.email, 'supabase=', !!supabase);
       }
 
       notify(`✅ Nouveau PIN généré pour ${request.userName}: ${newPin}`, 'success');
